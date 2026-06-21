@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7 Wonders Architects - Distributeur de Merveilles</title>
+  <title>7 Wonders Architects - Distributeur & Ambiance</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Confetti.js -->
@@ -52,13 +52,6 @@
     .text-glow {
       text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
     }
-    .card-3d {
-      perspective: 1000px;
-    }
-    .card-3d-inner {
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-    }
     .card-reveal {
       animation: revealCard 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
@@ -71,6 +64,28 @@
         opacity: 1;
         transform: translateY(0) rotateY(0deg);
       }
+    }
+    /* Wave animation for audio playing */
+    .bar {
+      display: inline-block;
+      width: 3px;
+      height: 3px;
+      background-color: #D4AF37;
+      margin: 0 2px;
+      border-radius: 10px;
+      transition: height 0.2s ease;
+    }
+    .playing .bar {
+      animation: bounce 0.8s ease infinite alternate;
+    }
+    .playing .bar:nth-child(1) { animation-delay: 0.1s; }
+    .playing .bar:nth-child(2) { animation-delay: 0.3s; }
+    .playing .bar:nth-child(3) { animation-delay: 0.2s; }
+    .playing .bar:nth-child(4) { animation-delay: 0.4s; }
+    .playing .bar:nth-child(5) { animation-delay: 0.15s; }
+    @keyframes bounce {
+      from { height: 4px; }
+      to { height: 20px; }
     }
   </style>
 </head>
@@ -89,9 +104,10 @@
           <p class="font-cinzel text-[10px] md:text-xs tracking-widest text-slate-400 -mt-1">ARCHITECTS COMPANION</p>
         </div>
       </div>
-      <!-- Sound toggle -->
-      <button id="soundToggle" onclick="toggleSound()" class="p-2 rounded-full border border-architect-gold/30 text-architect-gold hover:bg-architect-gold/10 transition-all" title="Activer/Désactiver le son">
-        <i data-lucide="volume-2" class="w-5 h-5" id="soundIcon"></i>
+      <!-- Sounds Toggle (Dice effects, clicks) -->
+      <button id="soundToggle" onclick="toggleSoundEffects()" class="p-2 rounded-xl border border-architect-gold/20 text-architect-gold hover:bg-architect-gold/10 transition-all flex items-center space-x-1.5" title="Effets Sonores">
+        <i data-lucide="volume-2" class="w-4 h-4" id="soundIcon"></i>
+        <span class="text-xs font-semibold hidden md:inline">Bruits SFX</span>
       </button>
     </div>
   </header>
@@ -99,78 +115,128 @@
   <!-- Main Container -->
   <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
     
-    <!-- Left Column: Settings & Players -->
-    <section class="lg:col-span-5 bg-architect-cardDark/50 border border-architect-gold/10 rounded-2xl p-5 md:p-6 shadow-xl backdrop-blur-sm flex flex-col justify-between">
-      <div>
-        <!-- Title Section -->
-        <div class="flex items-center space-x-2 mb-6">
-          <i data-lucide="settings" class="w-5 h-5 text-architect-gold"></i>
-          <h2 class="font-cinzel text-lg font-bold tracking-wider text-architect-gold">Configuration</h2>
-        </div>
-
-        <!-- Options / Toggles -->
-        <div class="space-y-4 mb-6">
-          <!-- Extension Medals -->
-          <div class="flex items-center justify-between p-3 bg-architect-dark/50 rounded-xl border border-white/5">
-            <div class="flex items-center space-x-3">
-              <i data-lucide="award" class="w-5 h-5 text-amber-500"></i>
-              <div>
-                <span class="block font-medium text-sm">Extension "Medals"</span>
-                <span class="text-xs text-slate-400">Ajoute Rome et Ur (9 merveilles au total)</span>
-              </div>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="extensionMedals" onchange="toggleExtension()" class="sr-only peer">
-              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-architect-gold after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-architect-accent"></div>
-            </label>
-          </div>
-
-          <!-- Mode Draft / Double merveille -->
-          <div class="flex items-center justify-between p-3 bg-architect-dark/50 rounded-xl border border-white/5">
-            <div class="flex items-center space-x-3">
-              <i data-lucide="layers" class="w-5 h-5 text-cyan-400"></i>
-              <div>
-                <span class="block font-medium text-sm">Mode "Choix Tactique"</span>
-                <span class="text-xs text-slate-400">Propose 2 merveilles au choix par joueur</span>
-              </div>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="draftMode" class="sr-only peer">
-              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-architect-gold after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-architect-accent"></div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Players List Header -->
+    <!-- Left Column: Music + Settings & Players -->
+    <section class="lg:col-span-5 space-y-6 flex flex-col justify-between">
+      
+      <!-- Audio Player Box -->
+      <div class="bg-gradient-to-b from-architect-cardDark to-architect-cardDark/80 border border-architect-gold/20 rounded-2xl p-5 shadow-xl">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-2">
-            <i data-lucide="users" class="w-5 h-5 text-architect-gold"></i>
-            <h3 class="font-cinzel text-sm font-bold tracking-wider text-architect-gold">Joueurs (<span id="playerCount">3</span>)</h3>
+            <div class="w-8 h-8 bg-architect-gold/10 rounded-lg flex items-center justify-center text-architect-gold">
+              <i data-lucide="music" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="font-cinzel text-xs font-bold tracking-widest text-architect-gold">Ambiance Antique</h3>
+              <p class="text-[10px] text-slate-400" id="currentTrackLabel">Rivages d'Alexandrie</p>
+            </div>
           </div>
-          <button onclick="fillHistoricalNames()" class="text-xs flex items-center space-x-1 text-architect-gold hover:underline bg-architect-gold/10 px-2 py-1 rounded-lg transition-all">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-            <span>Noms mythiques</span>
+          
+          <!-- Visualizer bars -->
+          <div id="visualizer" class="flex items-end h-6 px-2">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+          </div>
+        </div>
+
+        <div class="bg-architect-dark/60 rounded-xl p-3 border border-white/5 space-y-3">
+          <!-- Play/Pause & Selectors -->
+          <div class="flex items-center justify-between gap-3">
+            <button id="btnPlayAmbient" onclick="toggleAmbientMusic()" class="bg-architect-gold text-architect-dark font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 hover:bg-architect-goldLight transition-all shrink-0">
+              <i data-lucide="play" class="w-3.5 h-3.5" id="btnPlayAmbientIcon"></i>
+              <span id="btnPlayAmbientText">Lancer la Musique</span>
+            </button>
+            
+            <select id="ambientTrackSelect" onchange="changeAmbientTrack(this.value)" class="bg-architect-cardDark border border-white/10 rounded-xl px-2 py-2 text-xs text-slate-300 focus:outline-none focus:border-architect-gold/40 flex-grow">
+              <option value="alexandrie">🎵 Rivages d'Alexandrie (Vagues & Drone)</option>
+              <option value="ephese">🏛️ Temple d'Éphèse (Drone & Lyre de Harpe)</option>
+            </select>
+          </div>
+
+          <!-- Volume Slider -->
+          <div class="flex items-center space-x-3 pt-1">
+            <i data-lucide="volume-1" class="w-3.5 h-3.5 text-slate-400"></i>
+            <input type="range" id="ambientVolume" min="0" max="100" value="40" oninput="changeAmbientVolume(this.value)" class="w-full accent-architect-gold bg-slate-700 h-1.5 rounded-lg cursor-pointer">
+            <i data-lucide="volume-2" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings & Configuration Panel -->
+      <div class="bg-architect-cardDark/50 border border-architect-gold/10 rounded-2xl p-5 md:p-6 shadow-xl backdrop-blur-sm flex-grow flex flex-col justify-between">
+        <div>
+          <!-- Title Section -->
+          <div class="flex items-center space-x-2 mb-4">
+            <i data-lucide="settings" class="w-5 h-5 text-architect-gold"></i>
+            <h2 class="font-cinzel text-md font-bold tracking-wider text-architect-gold">Configuration de la Table</h2>
+          </div>
+
+          <!-- Options / Toggles -->
+          <div class="space-y-3 mb-5">
+            <!-- Extension Medals -->
+            <div class="flex items-center justify-between p-3 bg-architect-dark/50 rounded-xl border border-white/5">
+              <div class="flex items-center space-x-3">
+                <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
+                <div>
+                  <span class="block font-medium text-xs">Extension "Medals"</span>
+                  <span class="text-[10px] text-slate-400 block -mt-0.5">Ajoute Rome et Ur (9 merveilles)</span>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="extensionMedals" onchange="toggleExtension()" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-architect-gold after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-architect-accent"></div>
+              </label>
+            </div>
+
+            <!-- Mode Draft / Double merveille -->
+            <div class="flex items-center justify-between p-3 bg-architect-dark/50 rounded-xl border border-white/5">
+              <div class="flex items-center space-x-3">
+                <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+                <div>
+                  <span class="block font-medium text-xs">Mode "Choix Tactique"</span>
+                  <span class="text-[10px] text-slate-400 block -mt-0.5">Donne 2 merveilles au choix par joueur</span>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="draftMode" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-architect-gold after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-architect-accent"></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Players List Header -->
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="users" class="w-4 h-4 text-architect-gold"></i>
+              <h3 class="font-cinzel text-xs font-bold tracking-wider text-architect-gold">Joueurs (<span id="playerCount">3</span>)</h3>
+            </div>
+            <button onclick="fillHistoricalNames()" class="text-[11px] flex items-center space-x-1 text-architect-gold hover:underline bg-architect-gold/10 px-2.5 py-1 rounded-lg transition-all">
+              <i data-lucide="sparkles" class="w-3 h-3"></i>
+              <span>Noms mythiques</span>
+            </button>
+          </div>
+
+          <!-- Players Inputs Container -->
+          <div id="playersContainer" class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+            <!-- Dynamically filled -->
+          </div>
+
+          <!-- Add player button -->
+          <button id="addPlayerBtn" onclick="addPlayer()" class="w-full mt-2.5 py-2 border border-dashed border-architect-gold/30 hover:border-architect-gold text-slate-400 hover:text-architect-gold rounded-xl text-xs flex items-center justify-center space-x-2 transition-all">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span>Ajouter un joueur</span>
           </button>
         </div>
 
-        <!-- Players Inputs Container -->
-        <div id="playersContainer" class="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-          <!-- Dynamically filled -->
+        <!-- Action Button -->
+        <div class="mt-6 pt-4 border-t border-architect-gold/10">
+          <button onclick="distributeWonders()" class="w-full bg-gradient-to-r from-architect-accent to-architect-gold text-architect-dark font-cinzel font-black tracking-widest py-3.5 px-6 rounded-xl shadow-lg shadow-architect-gold/10 hover:shadow-architect-gold/30 transform hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center space-x-2 text-sm">
+            <i data-lucide="dices" class="w-4.5 h-4.5"></i>
+            <span>LANCER LA RÉPARTITION</span>
+          </button>
         </div>
-
-        <!-- Add player button -->
-        <button id="addPlayerBtn" onclick="addPlayer()" class="w-full mt-3 py-2 border border-dashed border-architect-gold/30 hover:border-architect-gold text-slate-400 hover:text-architect-gold rounded-xl text-sm flex items-center justify-center space-x-2 transition-all">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          <span>Ajouter un bâtisseur</span>
-        </button>
-      </div>
-
-      <!-- Action Button -->
-      <div class="mt-8 pt-4 border-t border-architect-gold/10">
-        <button onclick="distributeWonders()" class="w-full bg-gradient-to-r from-architect-accent to-architect-gold text-architect-dark font-cinzel font-black tracking-widest py-4 px-6 rounded-xl shadow-lg shadow-architect-gold/10 hover:shadow-architect-gold/30 transform hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center space-x-2 text-md">
-          <i data-lucide="dices" class="w-5 h-5"></i>
-          <span>LANCER LA RÉPARTITION</span>
-        </button>
       </div>
     </section>
 
@@ -178,11 +244,11 @@
     <section class="lg:col-span-7 flex flex-col justify-between">
       <!-- Empty State -->
       <div id="emptyState" class="flex-grow flex flex-col items-center justify-center text-center p-8 border border-dashed border-architect-gold/15 rounded-2xl bg-architect-cardDark/20 min-h-[450px]">
-        <div class="w-20 h-20 bg-architect-gold/5 rounded-full flex items-center justify-center border border-architect-gold/10 mb-4 animate-pulse">
-          <i data-lucide="compass" class="w-10 h-10 text-architect-gold"></i>
+        <div class="w-16 h-16 bg-architect-gold/5 rounded-full flex items-center justify-center border border-architect-gold/10 mb-4 animate-pulse">
+          <i data-lucide="compass" class="w-8 h-8 text-architect-gold"></i>
         </div>
-        <h3 class="font-cinzel text-lg tracking-widest text-architect-gold mb-2">En attente de répartition</h3>
-        <p class="text-sm text-slate-400 max-w-sm">Configurez vos joueurs et lancez le tirage pour distribuer les chantiers des merveilles antiques.</p>
+        <h3 class="font-cinzel text-md tracking-widest text-architect-gold mb-2">Prêt pour le tirage</h3>
+        <p class="text-xs text-slate-400 max-w-sm">Configurez vos bâtisseurs, lancez la bande-son antique, puis cliquez sur Distribuer pour attribuer les merveilles.</p>
       </div>
 
       <!-- Active Results Grid -->
@@ -190,16 +256,16 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-2">
             <i data-lucide="sparkles" class="w-5 h-5 text-architect-gold"></i>
-            <h2 class="font-cinzel text-lg font-bold tracking-wider text-architect-gold">Merveilles Distribuées</h2>
+            <h2 class="font-cinzel text-md font-bold tracking-wider text-architect-gold">Merveilles Attribuées</h2>
           </div>
           <button onclick="copyToClipboard()" class="text-xs flex items-center space-x-1.5 bg-architect-cardDark border border-architect-gold/20 hover:border-architect-gold text-slate-200 px-3 py-1.5 rounded-lg transition-all">
             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span>Partager le tirage</span>
+            <span>Copier le tirage</span>
           </button>
         </div>
 
         <!-- Scrollable Results Container -->
-        <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] lg:max-h-[580px] overflow-y-auto pr-1">
+        <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] lg:max-h-[550px] overflow-y-auto pr-1">
           <!-- Dynamically filled with player result cards -->
         </div>
 
@@ -214,9 +280,9 @@
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-architect-gold/10 py-4 bg-architect-cardDark/50 text-center text-xs text-slate-500">
+  <footer class="border-t border-architect-gold/10 py-4 bg-architect-cardDark/50 text-center text-[11px] text-slate-500">
     <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-      <p>© 2026 Companion non-officiel pour 7 Wonders Architects. Amusez-vous bien !</p>
+      <p>© 2026 Compagnon 7 Wonders Architects. Ambiance synthétique procédurale intégrée.</p>
       <div class="flex space-x-4">
         <span class="hover:text-architect-gold cursor-help transition-all" onclick="showHelpModal()">Aide de jeu</span>
       </div>
@@ -229,22 +295,22 @@
       <button onclick="hideHelpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i data-lucide="x" class="w-6 h-6"></i>
       </button>
-      <h3 class="font-cinzel text-xl font-bold text-architect-gold mb-4 tracking-wider text-glow">À propos des Merveilles</h3>
-      <div class="space-y-4 text-sm text-slate-300 max-h-[350px] overflow-y-auto pr-2">
-        <p><strong>7 Wonders Architects</strong> est un jeu rapide où vous construisez une merveille pièce par pièce pour accumuler les points de victoire et les médailles militaires ou scientifiques.</p>
-        <p>Chaque merveille possède un pouvoir unique qui s'active dès que son <strong>étape emblématique</strong> (souvent la pièce centrale ou un niveau spécifique) est construite.</p>
+      <h3 class="font-cinzel text-lg font-bold text-architect-gold mb-4 tracking-wider text-glow">À propos des Merveilles</h3>
+      <div class="space-y-4 text-xs text-slate-300 max-h-[350px] overflow-y-auto pr-2">
+        <p><strong>7 Wonders Architects</strong> est un jeu rapide où vous construisez une merveille pièce par pièce pour accumuler les points de victoire et les médailles.</p>
+        <p>Chaque merveille possède un pouvoir unique qui s'active dès que son <strong>étape centrale ou symbolique</strong> est construite.</p>
         <div class="border-t border-white/10 pt-3">
           <h4 class="font-semibold text-architect-gold mb-2">Rappel des Pouvoirs :</h4>
-          <ul class="space-y-2 text-xs">
+          <ul class="space-y-2 text-[11px]">
             <li>🏛️ <strong>Alexandrie</strong> : Piochez la première carte d'une pioche de votre choix (gauche, droite ou milieu).</li>
-            <li>🌸 <strong>Babylone</strong> : Choisissez un symbole scientifique de votre choix lors de la construction.</li>
+            <li>🌸 <strong>Babylone</strong> : Choisissez un symbole scientifique de votre choix lors du décompte.</li>
             <li>🏛️ <strong>Éphèse</strong> : Prenez la première carte de la pioche centrale gratuitement.</li>
             <li>📐 <strong>Gizeh</strong> : Pas de pouvoir, mais rapporte énormément de points de victoire (8 points à l'étape finale).</li>
             <li>🦁 <strong>Halicarnasse</strong> : Fouillez la défausse et jouez une carte de votre choix immédiatement.</li>
             <li>⚡ <strong>Olympie</strong> : Prenez gratuitement un jeton Progrès parmi les trois disponibles.</li>
             <li>⚔️ <strong>Rhodes</strong> : Gagnez définitivement 1 bouclier militaire.</li>
             <li>🏟️ <strong>Rome (Extension)</strong> : Piochez et choisissez des jetons ou cartes militaires d'élite.</li>
-            <li>🌀 <strong>Ur (Extension)</strong> : Permet de manipuler ou d'optimiser l'obtention des jetons bleus et cartes bleues.</li>
+            <li>🌀 <strong>Ur (Extension)</strong> : Permet d'optimiser l'obtention des jetons et cartes de commerce.</li>
           </ul>
         </div>
       </div>
@@ -256,20 +322,44 @@
 
   <!-- JS Logic -->
   <script>
-    // Audio Context Setup
-    let audioEnabled = true;
+    // Sound Effects and Synth Variables
+    let soundEffectsEnabled = true;
     let audioCtx = null;
+    
+    // Ambient Music Audio Nodes
+    let ambientCtx = null;
+    let ambientGain = null;
+    let ambientPlaying = false;
+    let isTrackInitialized = false;
 
-    function initAudio() {
+    // Track Generators nodes references to be able to stop them
+    let droneOscillators = [];
+    let noiseWaveSource = null;
+    let noiseWaveGain = null;
+    let waveLfoInterval = null;
+    let lyreInterval = null;
+
+    // Scale notes for the Lyre (D Dorian - D4, E4, F4, G4, A4, B4, C5, D5)
+    const LYRE_SCALE = [293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
+
+    // Lazy initialization of Synth contexts
+    function initAudioContexts() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
+      if (!ambientCtx) {
+        ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
+        ambientGain = ambientCtx.createGain();
+        // Default volume 40%
+        ambientGain.gain.setValueAtTime(0.4, ambientCtx.currentTime);
+        ambientGain.connect(ambientCtx.destination);
+      }
     }
 
-    function toggleSound() {
-      audioEnabled = !audioEnabled;
+    function toggleSoundEffects() {
+      soundEffectsEnabled = !soundEffectsEnabled;
       const soundIcon = document.getElementById('soundIcon');
-      if (audioEnabled) {
+      if (soundEffectsEnabled) {
         soundIcon.setAttribute('data-lucide', 'volume-2');
         soundIcon.classList.remove('text-red-400');
         playSynthSound(440, 'sine', 0.1, 0.1);
@@ -281,8 +371,8 @@
     }
 
     function playSynthSound(frequency, type, duration, volume) {
-      if (!audioEnabled) return;
-      initAudio();
+      if (!soundEffectsEnabled) return;
+      initAudioContexts();
       try {
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
@@ -298,97 +388,291 @@
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
       } catch (e) {
-        console.log("Audio failed to play", e);
+        console.warn("L'audio n'a pas pu se lancer", e);
       }
+    }
+
+    // -----------------------------------------------------------------
+    // PROCEDURAL AMBIENT SOUND GENERATOR (Web Audio API Engine)
+    // -----------------------------------------------------------------
+    
+    function toggleAmbientMusic() {
+      initAudioContexts();
+      
+      const btnIcon = document.getElementById('btnPlayAmbientIcon');
+      const btnText = document.getElementById('btnPlayAmbientText');
+      const visualizer = document.getElementById('visualizer');
+
+      if (ambientPlaying) {
+        // Stop Music
+        stopAllAmbientTracks();
+        ambientPlaying = false;
+        btnIcon.setAttribute('data-lucide', 'play');
+        btnText.innerText = "Lancer la Musique";
+        visualizer.classList.remove('playing');
+      } else {
+        // Start Music
+        if (ambientCtx.state === 'suspended') {
+          ambientCtx.resume();
+        }
+        const selectedTrack = document.getElementById('ambientTrackSelect').value;
+        startAmbientTrack(selectedTrack);
+        ambientPlaying = true;
+        btnIcon.setAttribute('data-lucide', 'pause');
+        btnText.innerText = "Couper l'ambiance";
+        visualizer.classList.add('playing');
+      }
+      lucide.createIcons();
+    }
+
+    function changeAmbientTrack(trackType) {
+      const label = document.getElementById('currentTrackLabel');
+      if (trackType === 'alexandrie') {
+        label.innerText = "Rivages d'Alexandrie";
+      } else {
+        label.innerText = "Mystères d'Éphèse";
+      }
+
+      if (ambientPlaying) {
+        stopAllAmbientTracks();
+        startAmbientTrack(trackType);
+      }
+    }
+
+    function changeAmbientVolume(val) {
+      initAudioContexts();
+      const gainVal = val / 100;
+      ambientGain.gain.setTargetAtTime(gainVal, ambientCtx.currentTime, 0.1);
+    }
+
+    // Helper: Generate White Noise for sea waves sound
+    function createNoiseBuffer() {
+      const bufferSize = 2 * ambientCtx.sampleRate;
+      const noiseBuffer = ambientCtx.createBuffer(1, bufferSize, ambientCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      return noiseBuffer;
+    }
+
+    function startAmbientTrack(trackType) {
+      initAudioContexts();
+      stopAllAmbientTracks();
+
+      if (trackType === 'alexandrie') {
+        // --- 1. OCEAN WAVES NOISE GENERATION ---
+        const noiseBuffer = createNoiseBuffer();
+        noiseWaveSource = ambientCtx.createBufferSource();
+        noiseWaveSource.buffer = noiseBuffer;
+        noiseWaveSource.loop = true;
+
+        const noiseFilter = ambientCtx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(400, ambientCtx.currentTime);
+
+        noiseWaveGain = ambientCtx.createGain();
+        noiseWaveGain.gain.setValueAtTime(0.01, ambientCtx.currentTime);
+
+        noiseWaveSource.connect(noiseFilter);
+        noiseFilter.connect(noiseWaveGain);
+        noiseWaveGain.connect(ambientGain);
+        noiseWaveSource.start();
+
+        // LFO (Sea swell automation) every 8 seconds loop
+        let swellDirection = true;
+        waveLfoInterval = setInterval(() => {
+          const targetVolume = swellDirection ? 0.08 : 0.01;
+          const targetFreq = swellDirection ? 800 : 300;
+          noiseWaveGain.gain.setTargetAtTime(targetVolume, ambientCtx.currentTime, 2.5);
+          noiseFilter.frequency.setTargetAtTime(targetFreq, ambientCtx.currentTime, 3.0);
+          swellDirection = !swellDirection;
+        }, 4000);
+
+        // --- 2. DEEP MYSTICAL DRONE BASE (Open fifths) ---
+        // Base notes: D2 (73Hz), A2 (110Hz), D3 (146Hz)
+        const rootFreqs = [73.42, 110.00, 146.83];
+        rootFreqs.forEach(freq => {
+          const osc = ambientCtx.createOscillator();
+          const oscFilter = ambientCtx.createBiquadFilter();
+          const oscGain = ambientCtx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
+          
+          oscFilter.type = 'lowpass';
+          oscFilter.frequency.setValueAtTime(200, ambientCtx.currentTime);
+
+          oscGain.gain.setValueAtTime(0.12, ambientCtx.currentTime);
+
+          osc.connect(oscFilter);
+          oscFilter.connect(oscGain);
+          oscGain.connect(ambientGain);
+          
+          osc.start();
+          droneOscillators.push(osc);
+        });
+
+      } else if (trackType === 'ephese') {
+        // --- 1. SHINING TEMPLE AMBIENCE DRONE ---
+        // G-minor drone chords: G2 (98Hz), D3 (146Hz), G3 (196Hz), Bb3 (233Hz)
+        const templeFreqs = [98.00, 146.83, 196.00, 233.08];
+        templeFreqs.forEach(freq => {
+          const osc = ambientCtx.createOscillator();
+          const oscFilter = ambientCtx.createBiquadFilter();
+          const oscGain = ambientCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
+          
+          oscFilter.type = 'lowpass';
+          oscFilter.frequency.setValueAtTime(350, ambientCtx.currentTime);
+          
+          oscGain.gain.setValueAtTime(0.08, ambientCtx.currentTime);
+
+          osc.connect(oscFilter);
+          oscFilter.connect(oscGain);
+          oscGain.connect(ambientGain);
+          
+          osc.start();
+          droneOscillators.push(osc);
+        });
+
+        // --- 2. RANDOM GREEK LYRE PLUCKS ENGINE ---
+        lyreInterval = setInterval(() => {
+          if (Math.random() > 0.3) { // 70% chance to pluck a note
+            const randomNote = LYRE_SCALE[Math.floor(Math.random() * LYRE_SCALE.length)];
+            triggerLyrePluck(randomNote);
+          }
+        }, 1200);
+      }
+    }
+
+    function triggerLyrePluck(freq) {
+      if (!ambientCtx || !ambientGain) return;
+      
+      const pluckOsc = ambientCtx.createOscillator();
+      const pluckGain = ambientCtx.createGain();
+      
+      pluckOsc.type = 'triangle';
+      pluckOsc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
+      
+      // Pluck pluck sound envelope (instant attack, long decay)
+      pluckGain.gain.setValueAtTime(0.06, ambientCtx.currentTime);
+      pluckGain.gain.exponentialRampToValueAtTime(0.00001, ambientCtx.currentTime + 2.5);
+      
+      pluckOsc.connect(pluckGain);
+      pluckGain.connect(ambientGain);
+      
+      pluckOsc.start();
+      pluckOsc.stop(ambientCtx.currentTime + 2.6);
+    }
+
+    function stopAllAmbientTracks() {
+      // Clear wave loops
+      if (waveLfoInterval) {
+        clearInterval(waveLfoInterval);
+        waveLfoInterval = null;
+      }
+      if (lyreInterval) {
+        clearInterval(lyreInterval);
+        lyreInterval = null;
+      }
+
+      // Stop ocean wave noise source
+      if (noiseWaveSource) {
+        try { noiseWaveSource.stop(); } catch(e) {}
+        noiseWaveSource = null;
+      }
+      noiseWaveGain = null;
+
+      // Stop all oscillators
+      droneOscillators.forEach(osc => {
+        try { osc.stop(); } catch(e) {}
+      });
+      droneOscillators = [];
     }
 
     function playDraftSound(index) {
       setTimeout(() => {
-        playSynthSound(300 + (index * 120), 'triangle', 0.2, 0.15);
-      }, index * 100);
+        playSynthSound(300 + (index * 120), 'triangle', 0.25, 0.12);
+      }, index * 120);
     }
 
-    // Wonders Database
+    // -----------------------------------------------------------------
+    // GAME COMPANION LOGIC
+    // -----------------------------------------------------------------
+
     const WONDERS = {
       base: [
         { 
           id: 'gizeh', 
           name: 'Gizeh', 
-          power: 'Étape Centrale : Aucun pouvoir spécial, mais rapporte un nombre colossal de points de victoire (8 points pour la grande étape). Simplifiez votre stratégie !', 
+          power: 'Étape Centrale : Aucun pouvoir spécial, mais rapporte un nombre colossal de points de victoire (8 points pour la grande étape). Idéal pour une victoire directe !', 
           color: 'from-amber-600/30 to-amber-900/40 border-amber-500/30 text-amber-300',
-          emoji: '📐',
-          iconSvg: `<polygon points="12,2 2,22 22,22" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '📐'
         },
         { 
           id: 'alexandrie', 
           name: 'Alexandrie', 
-          power: 'Étape Centrale : Prenez la première carte d\'une pioche de votre choix (à votre gauche, à votre droite ou au centre). Offre une adaptabilité suprême !', 
+          power: 'Étape Centrale : Prenez la première carte d\'une pioche de votre choix (à gauche, à droite ou au centre). Offre une adaptabilité stratégique fantastique !', 
           color: 'from-cyan-600/30 to-cyan-900/40 border-cyan-500/30 text-cyan-300',
-          emoji: '🏛️',
-          iconSvg: `<path d="M12 2v20M8 22h8M10 6h4M11 10h2M12 2l-3 4h6z" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '🏛️'
         },
         { 
           id: 'ephese', 
           name: 'Éphèse', 
-          power: 'Étape Centrale : Prenez gratuitement la première carte de la pioche centrale. Un excellent moyen d\'accélérer vos constructions !', 
+          power: 'Étape Centrale : Prenez gratuitement la première carte de la pioche centrale. Parfait pour accélérer vos chantiers !', 
           color: 'from-emerald-600/30 to-emerald-900/40 border-emerald-500/30 text-emerald-300',
-          emoji: '🏛️',
-          iconSvg: `<path d="M4 22h16M4 2h16M6 6v12M10 6v12M14 6v12M18 6v12M3 6h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '🏛️'
         },
         { 
           id: 'olympie', 
           name: 'Olympie', 
-          power: 'Étape Centrale : Prenez gratuitement l\'un des trois jetons Progrès disponibles face visible pour booster votre développement scientifique.', 
+          power: 'Étape Centrale : Prenez gratuitement l\'un des trois jetons Progrès disponibles face visible pour propulser votre arbre technologique.', 
           color: 'from-purple-600/30 to-purple-900/40 border-purple-500/30 text-purple-300',
-          emoji: '⚡',
-          iconSvg: `<path d="M12 2l-2 7h5l-4 9 7-9h-5z" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '⚡'
         },
         { 
           id: 'babylone', 
           name: 'Babylone', 
-          power: 'Étape Centrale : Choisissez un symbole scientifique de votre choix parmi les trois existants (Roue, Compas, Tablette) lors de l\'évaluation des scores.', 
+          power: 'Étape Centrale : Choisissez un symbole scientifique de votre choix (Roue, Compas, Tablette) lors de l\'évaluation des scores de fin de partie.', 
           color: 'from-rose-600/30 to-rose-900/40 border-rose-500/30 text-rose-300',
-          emoji: '🌸',
-          iconSvg: `<path d="M12 2a4 4 0 0 0-4 4c0 3 4 8 4 8s4-5 4-4a4 4 0 0 0-4-4zm-7 8c0-3 3-4 3-4s1 5-2 7a4 4 0 0 1-1-3zm14 0c0-3-3-4-3-4s-1 5 2 7a4 4 0 0 0 1-3z" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '🌸'
         },
         { 
           id: 'rhodes', 
           name: 'Rhodes', 
-          power: 'Étape Centrale : Ajoutez de manière permanente 1 Bouclier à votre force militaire (ne s\'applique pas aux cornes de brume mais protège des attaques).', 
+          power: 'Étape Centrale : Ajoutez de manière permanente 1 Bouclier à votre force de combat (ne déclenche pas les combats mais vous protège).', 
           color: 'from-orange-600/30 to-orange-900/40 border-orange-500/30 text-orange-300',
-          emoji: '⚔️',
-          iconSvg: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '⚔️'
         },
         { 
           id: 'halicarnasse', 
           name: 'Halicarnasse', 
-          power: 'Étape Centrale : Prenez l\'intégralité de la défausse, choisissez-y une carte pour la jouer gratuitement devant vous, puis mélangez la défausse.', 
+          power: 'Étape Centrale : Prenez la défausse entière, choisissez-y une carte pour la poser gratuitement, puis mélangez la défausse.', 
           color: 'from-indigo-600/30 to-indigo-900/40 border-indigo-500/30 text-indigo-300',
-          emoji: '🦁',
-          iconSvg: `<path d="M19 11h-6V5h6v6zm-8 0H5V5h6v6zm8 8h-6v-6h6v6zm-8 0H5v-6h6v6z" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '🦁'
         }
       ],
       medals: [
         { 
           id: 'rome', 
           name: 'Rome (Extension)', 
-          power: 'Étape Centrale : Prenez les 3 premiers jetons Progrès de la pioche, conservez-en un et défaussez les autres. Vos cartes militaires spéciales vous rapportent plus.', 
+          power: 'Étape Centrale : Prenez les 3 premiers jetons Progrès cachés de la pioche, gardez-en un et défaussez les autres. Vos cartes militaires spéciales rapportent des bonus.', 
           color: 'from-amber-800/40 to-red-950/40 border-amber-600/30 text-amber-200',
-          emoji: '🏟️',
-          iconSvg: `<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2"/>`
+          emoji: '🏟️'
         },
         { 
           id: 'ur', 
           name: 'Ur (Extension)', 
-          power: 'Étape Centrale : Prenez l\'unique jeton Progrès d\'urbanisme (si disponible) ou gagnez des jetons de commerce spéciaux pour contourner les règles d\'or.', 
+          power: 'Étape Centrale : Prenez l\'unique jeton Progrès d\'urbanisme (si disponible) ou gagnez des jetons de commerce exclusifs pour doubler vos ressources.', 
           color: 'from-blue-800/40 to-indigo-950/40 border-blue-600/30 text-blue-200',
-          emoji: '🌀',
-          iconSvg: `<path d="M12 3a9 9 0 0 0-9 9h9zM12 21a9 9 0 0 0 9-9h-9z" fill="none" stroke="currentColor" stroke-width="2"/>`
+          emoji: '🌀'
         }
       ]
     };
 
-    // State Variables
     let players = ["Bâtisseur 1", "Bâtisseur 2", "Bâtisseur 3"];
     const MYTHICAL_NAMES = [
       "Jules César", "Cléopâtre", "Périclès", "Nabuchodonosor", "Alexandre", "Artémise", "Hammurabi", 
@@ -396,13 +680,11 @@
     ];
     let distributionHistory = [];
 
-    // Initialize Page
     window.onload = function() {
       renderPlayers();
       lucide.createIcons();
     };
 
-    // Render Player Input Fields
     function renderPlayers() {
       const container = document.getElementById('playersContainer');
       container.innerHTML = '';
@@ -411,14 +693,14 @@
         const div = document.createElement('div');
         div.className = 'flex items-center space-x-2 animate-fade-in';
         div.innerHTML = `
-          <div class="bg-architect-dark/80 text-xs border border-architect-gold/20 text-architect-gold px-3 py-2 rounded-xl font-cinzel font-bold min-w-[32px] text-center">
+          <div class="bg-architect-dark/80 text-xs border border-architect-gold/20 text-architect-gold px-2.5 py-1.5 rounded-xl font-cinzel font-bold min-w-[32px] text-center">
             ${index + 1}
           </div>
           <input type="text" value="${player}" oninput="updatePlayerName(${index}, this.value)" 
                  placeholder="Nom du joueur" 
-                 class="flex-grow bg-architect-dark/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-architect-gold/60 transition-all font-medium">
-          <button onclick="removePlayer(${index})" class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all ${players.length <= 2 ? 'opacity-30 pointer-events-none' : ''}">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                 class="flex-grow bg-architect-dark/50 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-architect-gold/60 transition-all font-medium">
+          <button onclick="removePlayer(${index})" class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all ${players.length <= 2 ? 'opacity-30 pointer-events-none' : ''}">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         `;
         container.appendChild(div);
@@ -440,7 +722,6 @@
         renderPlayers();
         playSynthSound(440 + (players.length * 50), 'sine', 0.1, 0.1);
         
-        // Scroll to bottom of players container
         const container = document.getElementById('playersContainer');
         container.scrollTop = container.scrollHeight;
       }
@@ -461,13 +742,11 @@
       let poolSize = WONDERS.base.length;
       if (hasMedals) poolSize += WONDERS.medals.length;
 
-      // In draft mode, we need 2 wonders per player
       return draftMode ? Math.floor(poolSize / 2) : poolSize;
     }
 
     function toggleExtension() {
       const maxAllowed = getMaxPlayersAllowed();
-      // If we currently have more players than the allowed maximum with/without expansion
       while (players.length > maxAllowed) {
         players.pop();
       }
@@ -493,7 +772,6 @@
       renderPlayers();
     }
 
-    // Helper: Shuffle Array
     function shuffle(array) {
       let currentIndex = array.length, randomIndex;
       while (currentIndex !== 0) {
@@ -504,37 +782,32 @@
       return array;
     }
 
-    // CORE LOGIC: Distribute Wonders
     function distributeWonders() {
       // Audio Cue
-      playSynthSound(220, 'square', 0.1, 0.15);
-      setTimeout(() => playSynthSound(440, 'square', 0.1, 0.15), 80);
-      setTimeout(() => playSynthSound(880, 'sine', 0.3, 0.2), 160);
+      playSynthSound(220, 'square', 0.1, 0.1);
+      setTimeout(() => playSynthSound(440, 'square', 0.1, 0.1), 80);
+      setTimeout(() => playSynthSound(880, 'sine', 0.3, 0.15), 160);
 
       const hasMedals = document.getElementById('extensionMedals').checked;
       const draftMode = document.getElementById('draftMode').checked;
       
-      // Build the selected wonder pool
       let pool = [...WONDERS.base];
       if (hasMedals) {
         pool = [...pool, ...WONDERS.medals];
       }
 
-      // Check validation
       const neededCount = draftMode ? players.length * 2 : players.length;
       if (pool.length < neededCount) {
-        alert(`Pas assez de merveilles disponibles dans le paquet (${pool.length}) pour distribuer ${neededCount} merveilles. Désactivez le mode tactique ou ajoutez l'extension.`);
+        alert(`Pas assez de merveilles disponibles dans la boîte (${pool.length}) pour distribuer ${neededCount} chantiers.`);
         return;
       }
 
-      // Shuffle pool
       const shuffledWonders = shuffle([...pool]);
       const results = [];
 
       for (let i = 0; i < players.length; i++) {
         const player = players[i].trim() || `Bâtisseur ${i + 1}`;
         if (draftMode) {
-          // Provide two wonders options
           const option1 = shuffledWonders.pop();
           const option2 = shuffledWonders.pop();
           results.push({
@@ -544,7 +817,6 @@
             option2
           });
         } else {
-          // Provide one wonder directly
           const assigned = shuffledWonders.pop();
           results.push({
             playerName: player,
@@ -557,16 +829,14 @@
       distributionHistory = results;
       displayResults(results);
       
-      // Fire confetti celebration!
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 60,
+        spread: 60,
         origin: { y: 0.6 },
-        colors: ['#D4AF37', '#F3E5AB', '#8B6508', '#ffffff']
+        colors: ['#D4AF37', '#F3E5AB', '#8B6508']
       });
     }
 
-    // Display distribution beautifully on screen
     function displayResults(results) {
       document.getElementById('emptyState').classList.add('hidden');
       const wrapper = document.getElementById('resultsWrapper');
@@ -581,70 +851,64 @@
         
         const card = document.createElement('div');
         card.className = `bg-architect-cardDark border rounded-2xl p-4 flex flex-col justify-between shadow-lg opacity-0 card-reveal`;
-        card.style.animationDelay = `${index * 150}ms`;
+        card.style.animationDelay = `${index * 120}ms`;
 
         if (res.isDraft) {
-          // Double option card layout
-          card.classList.add('border-cyan-500/20', 'bg-gradient-to-br', 'from-cyan-950/25', 'to-architect-cardDark');
+          card.classList.add('border-cyan-500/20', 'bg-gradient-to-br', 'from-cyan-950/15', 'to-architect-cardDark');
           card.innerHTML = `
             <div>
-              <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-                <span class="font-cinzel text-xs text-cyan-400 font-bold uppercase tracking-wider">Choix Tactique</span>
-                <span class="text-[10px] text-slate-400">Joueur ${index + 1}</span>
+              <div class="flex items-center justify-between mb-2.5 border-b border-white/5 pb-1.5">
+                <span class="font-cinzel text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Choix Tactique</span>
+                <span class="text-[9px] text-slate-400">Joueur ${index + 1}</span>
               </div>
-              <h4 class="font-cinzel text-md font-black tracking-wide text-white mb-3 flex items-center space-x-1.5">
-                <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
+              <h4 class="font-cinzel text-sm font-black tracking-wide text-white mb-2.5 flex items-center space-x-1.5">
+                <i data-lucide="user" class="w-3.5 h-3.5 text-cyan-400"></i>
                 <span>${res.playerName}</span>
               </h4>
               
-              <!-- Draft Choices Grid -->
-              <div class="grid grid-cols-2 gap-2 mt-2">
-                <!-- Option 1 -->
-                <div class="border rounded-xl p-2.5 bg-architect-dark/50 hover:bg-architect-dark transition-all flex flex-col justify-between ${res.option1.color}">
-                  <div class="flex items-center space-x-1.5 mb-1">
-                    <span class="text-base">${res.option1.emoji}</span>
-                    <span class="font-cinzel font-bold text-xs truncate">${res.option1.name}</span>
+              <div class="grid grid-cols-2 gap-2 mt-1">
+                <div class="border rounded-xl p-2 bg-architect-dark/50 hover:bg-architect-dark transition-all flex flex-col justify-between ${res.option1.color}">
+                  <div class="flex items-center space-x-1 mb-1">
+                    <span class="text-xs">${res.option1.emoji}</span>
+                    <span class="font-cinzel font-bold text-[10px] truncate">${res.option1.name}</span>
                   </div>
-                  <p class="text-[9px] text-slate-300 leading-tight line-clamp-4 mt-1">${res.option1.power}</p>
+                  <p class="text-[9px] text-slate-300 leading-tight line-clamp-3 mt-1">${res.option1.power}</p>
                 </div>
 
-                <!-- Option 2 -->
-                <div class="border rounded-xl p-2.5 bg-architect-dark/50 hover:bg-architect-dark transition-all flex flex-col justify-between ${res.option2.color}">
-                  <div class="flex items-center space-x-1.5 mb-1">
-                    <span class="text-base">${res.option2.emoji}</span>
-                    <span class="font-cinzel font-bold text-xs truncate">${res.option2.name}</span>
+                <div class="border rounded-xl p-2 bg-architect-dark/50 hover:bg-architect-dark transition-all flex flex-col justify-between ${res.option2.color}">
+                  <div class="flex items-center space-x-1 mb-1">
+                    <span class="text-xs">${res.option2.emoji}</span>
+                    <span class="font-cinzel font-bold text-[10px] truncate">${res.option2.name}</span>
                   </div>
-                  <p class="text-[9px] text-slate-300 leading-tight line-clamp-4 mt-1">${res.option2.power}</p>
+                  <p class="text-[9px] text-slate-300 leading-tight line-clamp-3 mt-1">${res.option2.power}</p>
                 </div>
               </div>
             </div>
-            <div class="mt-3 text-[10px] text-center text-cyan-300/80 font-medium italic">
-              Choisissez l'une de ces 2 merveilles !
+            <div class="mt-2.5 text-[9px] text-center text-cyan-300/80 font-medium italic">
+              Sélectionnez une des deux options
             </div>
           `;
         } else {
-          // Direct assignment layout
           const w = res.wonder;
           card.classList.add('border-architect-gold/20', 'bg-gradient-to-br', 'from-architect-gold/5', 'to-architect-cardDark');
           card.innerHTML = `
             <div>
-              <div class="flex items-center justify-between mb-2.5 border-b border-white/5 pb-2">
-                <span class="font-cinzel text-xs text-architect-gold tracking-widest">Attribution</span>
-                <span class="text-[10px] text-slate-400">Joueur ${index + 1}</span>
+              <div class="flex items-center justify-between mb-2 border-b border-white/5 pb-1.5">
+                <span class="font-cinzel text-[10px] text-architect-gold tracking-widest">Attribution</span>
+                <span class="text-[9px] text-slate-400">Joueur ${index + 1}</span>
               </div>
-              <h4 class="font-cinzel text-md font-black tracking-wide text-white mb-2 flex items-center space-x-1.5">
-                <i data-lucide="user" class="w-4 h-4 text-architect-gold"></i>
+              <h4 class="font-cinzel text-sm font-black tracking-wide text-white mb-2 flex items-center space-x-1.5">
+                <i data-lucide="user" class="w-3.5 h-3.5 text-architect-gold"></i>
                 <span>${res.playerName}</span>
               </h4>
               
-              <!-- Assigned Wonder Showcase -->
-              <div class="border rounded-xl p-3 bg-gradient-to-r ${w.color} flex items-start space-x-3 mt-2">
-                <div class="w-10 h-10 rounded-lg bg-architect-dark/60 flex items-center justify-center text-xl shrink-0 text-white border border-white/10">
+              <div class="border rounded-xl p-2.5 bg-gradient-to-r ${w.color} flex items-start space-x-2.5 mt-1.5">
+                <div class="w-8 h-8 rounded-lg bg-architect-dark/60 flex items-center justify-center text-base shrink-0 text-white border border-white/10">
                   ${w.emoji}
                 </div>
-                <div class="overflow-hidden">
-                  <span class="font-cinzel font-black tracking-widest text-sm text-white block">${w.name.toUpperCase()}</span>
-                  <p class="text-[10px] text-slate-200 leading-relaxed mt-1">${w.power}</p>
+                <div>
+                  <span class="font-cinzel font-black tracking-wider text-xs text-white block">${w.name.toUpperCase()}</span>
+                  <p class="text-[9px] text-slate-200 leading-relaxed mt-0.5">${w.power}</p>
                 </div>
               </div>
             </div>
@@ -657,7 +921,6 @@
       lucide.createIcons();
     }
 
-    // Copy To Clipboard using backward-compatible mechanism
     function copyToClipboard() {
       if (distributionHistory.length === 0) return;
 
@@ -669,7 +932,7 @@
           text += `👤 ${res.playerName} : ${res.wonder.emoji} ${res.wonder.name}\n`;
         }
       });
-      text += "⚡ Préparez vos chantiers et que le meilleur architecte l'emporte !";
+      text += "⚡ Que le meilleur bâtisseur l'emporte !";
 
       const dummy = document.createElement("textarea");
       document.body.appendChild(dummy);
@@ -678,8 +941,7 @@
       document.execCommand("copy");
       document.body.removeChild(dummy);
 
-      // Trigger custom UI toast notification
-      playSynthSound(523, 'sine', 0.15, 0.1);
+      playSynthSound(523, 'sine', 0.15, 0.15);
       const toast = document.getElementById('toast');
       toast.classList.remove('hidden');
       setTimeout(() => {
@@ -687,7 +949,6 @@
       }, 2500);
     }
 
-    // Modal Triggers
     function showHelpModal() {
       playSynthSound(600, 'sine', 0.1, 0.1);
       document.getElementById('helpModal').classList.remove('hidden');
