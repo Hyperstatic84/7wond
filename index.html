@@ -383,4 +383,319 @@
           power: 'Étape Centrale : Prenez l\'unique jeton Progrès d\'urbanisme (si disponible) ou gagnez des jetons de commerce spéciaux pour contourner les règles d\'or.', 
           color: 'from-blue-800/40 to-indigo-950/40 border-blue-600/30 text-blue-200',
           emoji: '🌀',
-          iconSvg: `<path d="M12 3a9 9 0 0 0-9 9h9
+          iconSvg: `<path d="M12 3a9 9 0 0 0-9 9h9zM12 21a9 9 0 0 0 9-9h-9z" fill="none" stroke="currentColor" stroke-width="2"/>`
+        }
+      ]
+    };
+
+    // State Variables
+    let players = ["Bâtisseur 1", "Bâtisseur 2", "Bâtisseur 3"];
+    const MYTHICAL_NAMES = [
+      "Jules César", "Cléopâtre", "Périclès", "Nabuchodonosor", "Alexandre", "Artémise", "Hammurabi", 
+      "Sémiramis", "Khéops", "Phidias", "Hérodote", "Héraclès", "Ptolémée", "Néron", "Ramsès II"
+    ];
+    let distributionHistory = [];
+
+    // Initialize Page
+    window.onload = function() {
+      renderPlayers();
+      lucide.createIcons();
+    };
+
+    // Render Player Input Fields
+    function renderPlayers() {
+      const container = document.getElementById('playersContainer');
+      container.innerHTML = '';
+      
+      players.forEach((player, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center space-x-2 animate-fade-in';
+        div.innerHTML = `
+          <div class="bg-architect-dark/80 text-xs border border-architect-gold/20 text-architect-gold px-3 py-2 rounded-xl font-cinzel font-bold min-w-[32px] text-center">
+            ${index + 1}
+          </div>
+          <input type="text" value="${player}" oninput="updatePlayerName(${index}, this.value)" 
+                 placeholder="Nom du joueur" 
+                 class="flex-grow bg-architect-dark/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-architect-gold/60 transition-all font-medium">
+          <button onclick="removePlayer(${index})" class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all ${players.length <= 2 ? 'opacity-30 pointer-events-none' : ''}">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        `;
+        container.appendChild(div);
+      });
+      
+      document.getElementById('playerCount').innerText = players.length;
+      updateAddButtonState();
+      lucide.createIcons();
+    }
+
+    function updatePlayerName(index, val) {
+      players[index] = val;
+    }
+
+    function addPlayer() {
+      const maxAllowed = getMaxPlayersAllowed();
+      if (players.length < maxAllowed) {
+        players.push(`Bâtisseur ${players.length + 1}`);
+        renderPlayers();
+        playSynthSound(440 + (players.length * 50), 'sine', 0.1, 0.1);
+        
+        // Scroll to bottom of players container
+        const container = document.getElementById('playersContainer');
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    function removePlayer(index) {
+      if (players.length > 2) {
+        players.splice(index, 1);
+        renderPlayers();
+        playSynthSound(300, 'sine', 0.1, 0.1);
+      }
+    }
+
+    function getMaxPlayersAllowed() {
+      const hasMedals = document.getElementById('extensionMedals').checked;
+      const draftMode = document.getElementById('draftMode').checked;
+      
+      let poolSize = WONDERS.base.length;
+      if (hasMedals) poolSize += WONDERS.medals.length;
+
+      // In draft mode, we need 2 wonders per player
+      return draftMode ? Math.floor(poolSize / 2) : poolSize;
+    }
+
+    function toggleExtension() {
+      const maxAllowed = getMaxPlayersAllowed();
+      // If we currently have more players than the allowed maximum with/without expansion
+      while (players.length > maxAllowed) {
+        players.pop();
+      }
+      renderPlayers();
+    }
+
+    function updateAddButtonState() {
+      const btn = document.getElementById('addPlayerBtn');
+      const max = getMaxPlayersAllowed();
+      if (players.length >= max) {
+        btn.classList.add('opacity-40', 'cursor-not-allowed');
+        btn.setAttribute('disabled', 'true');
+      } else {
+        btn.classList.remove('opacity-40', 'cursor-not-allowed');
+        btn.removeAttribute('disabled');
+      }
+    }
+
+    function fillHistoricalNames() {
+      playSynthSound(600, 'triangle', 0.15, 0.1);
+      const shuffledNames = [...MYTHICAL_NAMES].sort(() => Math.random() - 0.5);
+      players = players.map((_, i) => shuffledNames[i] || `Bâtisseur ${i + 1}`);
+      renderPlayers();
+    }
+
+    // Helper: Shuffle Array
+    function shuffle(array) {
+      let currentIndex = array.length, randomIndex;
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+      }
+      return array;
+    }
+
+    // CORE LOGIC: Distribute Wonders
+    function distributeWonders() {
+      // Audio Cue
+      playSynthSound(220, 'square', 0.1, 0.15);
+      setTimeout(() => playSynthSound(440, 'square', 0.1, 0.15), 80);
+      setTimeout(() => playSynthSound(880, 'sine', 0.3, 0.2), 160);
+
+      const hasMedals = document.getElementById('extensionMedals').checked;
+      const draftMode = document.getElementById('draftMode').checked;
+      
+      // Build the selected wonder pool
+      let pool = [...WONDERS.base];
+      if (hasMedals) {
+        pool = [...pool, ...WONDERS.medals];
+      }
+
+      // Check validation
+      const neededCount = draftMode ? players.length * 2 : players.length;
+      if (pool.length < neededCount) {
+        alert(`Pas assez de merveilles disponibles dans le paquet (${pool.length}) pour distribuer ${neededCount} merveilles. Désactivez le mode tactique ou ajoutez l'extension.`);
+        return;
+      }
+
+      // Shuffle pool
+      const shuffledWonders = shuffle([...pool]);
+      const results = [];
+
+      for (let i = 0; i < players.length; i++) {
+        const player = players[i].trim() || `Bâtisseur ${i + 1}`;
+        if (draftMode) {
+          // Provide two wonders options
+          const option1 = shuffledWonders.pop();
+          const option2 = shuffledWonders.pop();
+          results.push({
+            playerName: player,
+            isDraft: true,
+            option1,
+            option2
+          });
+        } else {
+          // Provide one wonder directly
+          const assigned = shuffledWonders.pop();
+          results.push({
+            playerName: player,
+            isDraft: false,
+            wonder: assigned
+          });
+        }
+      }
+
+      distributionHistory = results;
+      displayResults(results);
+      
+      // Fire confetti celebration!
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#D4AF37', '#F3E5AB', '#8B6508', '#ffffff']
+      });
+    }
+
+    // Display distribution beautifully on screen
+    function displayResults(results) {
+      document.getElementById('emptyState').classList.add('hidden');
+      const wrapper = document.getElementById('resultsWrapper');
+      wrapper.classList.remove('hidden');
+      wrapper.classList.add('flex');
+
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '';
+
+      results.forEach((res, index) => {
+        playDraftSound(index);
+        
+        const card = document.createElement('div');
+        card.className = `bg-architect-cardDark border rounded-2xl p-4 flex flex-col justify-between shadow-lg opacity-0 card-reveal`;
+        card.style.animationDelay = `${index * 150}ms`;
+
+        if (res.isDraft) {
+          // Double option card layout
+          card.classList.add('border-cyan-500/20', 'bg-gradient-to-br', 'from-cyan-950/25', 'to-architect-cardDark');
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
+                <span class="font-cinzel text-xs text-cyan-400 font-bold uppercase tracking-wider">Choix Tactique</span>
+                <span class="text-[10px] text-slate-400">Joueur ${index + 1}</span>
+              </div>
+              <h4 class="font-cinzel text-md font-black tracking-wide text-white mb-3 flex items-center space-x-1.5">
+                <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
+                <span>${res.playerName}</span>
+              </h4>
+              
+              <!-- Draft Choices Grid -->
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <!-- Option 1 -->
+                <div class="border rounded-xl p-2.5 bg-architect-dark/50 hover:bg-architect-dark transition-all flex flex-col justify-between ${res.option1.color}">
+                  <div class="flex items-center space-x-1.5 mb-1">
+                    <span class="text-base">${res.option1.emoji}</span>
+                    <span class="font-cinzel font-bold text-xs truncate">${res.option1.name}</span>
+                  </div>
+                  <p class="text-[9px] text-slate-300 leading-tight line-clamp-4 mt-1">${res.option1.power}</p>
+                </div>
+
+                <!-- Option 2 -->
+                <div class="border rounded-xl p-2.5 bg-architect-dark/50 hover:bg-architect-dark transition-all flex flex-col justify-between ${res.option2.color}">
+                  <div class="flex items-center space-x-1.5 mb-1">
+                    <span class="text-base">${res.option2.emoji}</span>
+                    <span class="font-cinzel font-bold text-xs truncate">${res.option2.name}</span>
+                  </div>
+                  <p class="text-[9px] text-slate-300 leading-tight line-clamp-4 mt-1">${res.option2.power}</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 text-[10px] text-center text-cyan-300/80 font-medium italic">
+              Choisissez l'une de ces 2 merveilles !
+            </div>
+          `;
+        } else {
+          // Direct assignment layout
+          const w = res.wonder;
+          card.classList.add('border-architect-gold/20', 'bg-gradient-to-br', 'from-architect-gold/5', 'to-architect-cardDark');
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-2.5 border-b border-white/5 pb-2">
+                <span class="font-cinzel text-xs text-architect-gold tracking-widest">Attribution</span>
+                <span class="text-[10px] text-slate-400">Joueur ${index + 1}</span>
+              </div>
+              <h4 class="font-cinzel text-md font-black tracking-wide text-white mb-2 flex items-center space-x-1.5">
+                <i data-lucide="user" class="w-4 h-4 text-architect-gold"></i>
+                <span>${res.playerName}</span>
+              </h4>
+              
+              <!-- Assigned Wonder Showcase -->
+              <div class="border rounded-xl p-3 bg-gradient-to-r ${w.color} flex items-start space-x-3 mt-2">
+                <div class="w-10 h-10 rounded-lg bg-architect-dark/60 flex items-center justify-center text-xl shrink-0 text-white border border-white/10">
+                  ${w.emoji}
+                </div>
+                <div class="overflow-hidden">
+                  <span class="font-cinzel font-black tracking-widest text-sm text-white block">${w.name.toUpperCase()}</span>
+                  <p class="text-[10px] text-slate-200 leading-relaxed mt-1">${w.power}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Copy To Clipboard using backward-compatible mechanism
+    function copyToClipboard() {
+      if (distributionHistory.length === 0) return;
+
+      let text = "🏆 RÉPARTITION 7 WONDERS ARCHITECTS 🏆\n\n";
+      distributionHistory.forEach((res, i) => {
+        if (res.isDraft) {
+          text += `👤 ${res.playerName} : \n   👉 Option A : ${res.option1.emoji} ${res.option1.name}\n   👉 Option B : ${res.option2.emoji} ${res.option2.name}\n\n`;
+        } else {
+          text += `👤 ${res.playerName} : ${res.wonder.emoji} ${res.wonder.name}\n`;
+        }
+      });
+      text += "⚡ Préparez vos chantiers et que le meilleur architecte l'emporte !";
+
+      const dummy = document.createElement("textarea");
+      document.body.appendChild(dummy);
+      dummy.value = text;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+
+      // Trigger custom UI toast notification
+      playSynthSound(523, 'sine', 0.15, 0.1);
+      const toast = document.getElementById('toast');
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2500);
+    }
+
+    // Modal Triggers
+    function showHelpModal() {
+      playSynthSound(600, 'sine', 0.1, 0.1);
+      document.getElementById('helpModal').classList.remove('hidden');
+    }
+
+    function hideHelpModal() {
+      document.getElementById('helpModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
