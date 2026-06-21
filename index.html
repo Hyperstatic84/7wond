@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7 Wonders Architects - Distributeur & Ambiance</title>
+  <title>7 Wonders Architects - Distributeur & Ambiance Melodice</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com/"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Confetti.js -->
@@ -65,28 +65,6 @@
         transform: translateY(0) rotateY(0deg);
       }
     }
-    /* Wave animation for audio playing */
-    .bar {
-      display: inline-block;
-      width: 3px;
-      height: 3px;
-      background-color: #D4AF37;
-      margin: 0 2px;
-      border-radius: 10px;
-      transition: height 0.2s ease;
-    }
-    .playing .bar {
-      animation: bounce 0.8s ease infinite alternate;
-    }
-    .playing .bar:nth-child(1) { animation-delay: 0.1s; }
-    .playing .bar:nth-child(2) { animation-delay: 0.3s; }
-    .playing .bar:nth-child(3) { animation-delay: 0.2s; }
-    .playing .bar:nth-child(4) { animation-delay: 0.4s; }
-    .playing .bar:nth-child(5) { animation-delay: 0.15s; }
-    @keyframes bounce {
-      from { height: 4px; }
-      to { height: 20px; }
-    }
   </style>
 </head>
 <body class="bg-architect-dark text-slate-100 font-sans min-h-screen flex flex-col justify-between">
@@ -104,63 +82,60 @@
           <p class="font-cinzel text-[10px] md:text-xs tracking-widest text-slate-400 -mt-1">ARCHITECTS COMPANION</p>
         </div>
       </div>
-      <!-- Sounds Toggle (Dice effects, clicks) -->
-      <button id="soundToggle" onclick="toggleSoundEffects()" class="p-2 rounded-xl border border-architect-gold/20 text-architect-gold hover:bg-architect-gold/10 transition-all flex items-center space-x-1.5" title="Effets Sonores">
-        <i data-lucide="volume-2" class="w-4 h-4" id="soundIcon"></i>
-        <span class="text-xs font-semibold hidden md:inline">Bruits SFX</span>
-      </button>
+      
+      <!-- Melodice Link Badge -->
+      <a href="https://melodice.org/playlist/7-wonders-architects/" target="_blank" class="flex items-center space-x-2 bg-architect-gold/10 hover:bg-architect-gold/20 text-architect-gold border border-architect-gold/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+        <span>Melodice.org</span>
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+      </a>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
     
-    <!-- Left Column: Music + Settings & Players -->
+    <!-- Left Column: Melodice Player + Settings & Players -->
     <section class="lg:col-span-5 space-y-6 flex flex-col justify-between">
       
-      <!-- Audio Player Box -->
+      <!-- Melodice.org Ambient Player Box -->
       <div class="bg-gradient-to-b from-architect-cardDark to-architect-cardDark/80 border border-architect-gold/20 rounded-2xl p-5 shadow-xl">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-2">
+        <div class="flex items-center justify-between mb-3.5">
+          <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 bg-architect-gold/10 rounded-lg flex items-center justify-center text-architect-gold">
-              <i data-lucide="music" class="w-4 h-4"></i>
+              <i data-lucide="music-4" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="font-cinzel text-xs font-bold tracking-widest text-architect-gold">Ambiance Antique</h3>
-              <p class="text-[10px] text-slate-400" id="currentTrackLabel">Rivages d'Alexandrie</p>
+              <h3 class="font-cinzel text-xs font-bold tracking-widest text-architect-gold">Bande-Son Officieuse</h3>
+              <p class="text-[10px] text-slate-400">Curée par la communauté Melodice</p>
             </div>
           </div>
           
-          <!-- Visualizer bars -->
-          <div id="visualizer" class="flex items-end h-6 px-2">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-          </div>
+          <span class="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/20">
+            Intégré
+          </span>
         </div>
 
-        <div class="bg-architect-dark/60 rounded-xl p-3 border border-white/5 space-y-3">
-          <!-- Play/Pause & Selectors -->
-          <div class="flex items-center justify-between gap-3">
-            <button id="btnPlayAmbient" onclick="toggleAmbientMusic()" class="bg-architect-gold text-architect-dark font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 hover:bg-architect-goldLight transition-all shrink-0">
-              <i data-lucide="play" class="w-3.5 h-3.5" id="btnPlayAmbientIcon"></i>
-              <span id="btnPlayAmbientText">Lancer la Musique</span>
-            </button>
-            
-            <select id="ambientTrackSelect" onchange="changeAmbientTrack(this.value)" class="bg-architect-cardDark border border-white/10 rounded-xl px-2 py-2 text-xs text-slate-300 focus:outline-none focus:border-architect-gold/40 flex-grow">
-              <option value="alexandrie">🎵 Rivages d'Alexandrie (Vagues & Drone)</option>
-              <option value="ephese">🏛️ Temple d'Éphèse (Drone & Lyre de Harpe)</option>
-            </select>
-          </div>
+        <!-- Embedded Web Player (Utilise une playlist thématique de jeux de société antiques) -->
+        <div class="rounded-xl overflow-hidden border border-white/5 bg-architect-dark/95">
+          <iframe 
+            class="w-full h-28 md:h-32" 
+            src="https://www.youtube.com/embed/videoseries?list=PL_m8b0bU7XpE79Oa66nscGkCofbofXNqf&index=1" 
+            title="7 Wonders Ambient Playlist" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
 
-          <!-- Volume Slider -->
-          <div class="flex items-center space-x-3 pt-1">
-            <i data-lucide="volume-1" class="w-3.5 h-3.5 text-slate-400"></i>
-            <input type="range" id="ambientVolume" min="0" max="100" value="40" oninput="changeAmbientVolume(this.value)" class="w-full accent-architect-gold bg-slate-700 h-1.5 rounded-lg cursor-pointer">
-            <i data-lucide="volume-2" class="w-3.5 h-3.5 text-slate-400"></i>
-          </div>
+        <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+          <span class="flex items-center space-x-1">
+            <i data-lucide="info" class="w-3 h-3 text-architect-gold"></i>
+            <span>La musique ne démarre pas ?</span>
+          </span>
+          <a href="https://melodice.org/playlist/7-wonders-architects/" target="_blank" class="text-architect-gold hover:underline font-semibold flex items-center space-x-1">
+            <span>Lancer sur Melodice</span>
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </a>
         </div>
       </div>
 
@@ -248,7 +223,7 @@
           <i data-lucide="compass" class="w-8 h-8 text-architect-gold"></i>
         </div>
         <h3 class="font-cinzel text-md tracking-widest text-architect-gold mb-2">Prêt pour le tirage</h3>
-        <p class="text-xs text-slate-400 max-w-sm">Configurez vos bâtisseurs, lancez la bande-son antique, puis cliquez sur Distribuer pour attribuer les merveilles.</p>
+        <p class="text-xs text-slate-400 max-w-sm">Configurez vos bâtisseurs, lancez la bande-son antique Melodice, puis cliquez sur Distribuer pour attribuer les merveilles.</p>
       </div>
 
       <!-- Active Results Grid -->
@@ -282,7 +257,7 @@
   <!-- Footer -->
   <footer class="border-t border-architect-gold/10 py-4 bg-architect-cardDark/50 text-center text-[11px] text-slate-500">
     <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-      <p>© 2026 Compagnon 7 Wonders Architects. Ambiance synthétique procédurale intégrée.</p>
+      <p>© 2026 Compagnon 7 Wonders Architects. Intégration sonore via Melodice.org.</p>
       <div class="flex space-x-4">
         <span class="hover:text-architect-gold cursor-help transition-all" onclick="showHelpModal()">Aide de jeu</span>
       </div>
@@ -322,287 +297,7 @@
 
   <!-- JS Logic -->
   <script>
-    // Sound Effects and Synth Variables
-    let soundEffectsEnabled = true;
-    let audioCtx = null;
-    
-    // Ambient Music Audio Nodes
-    let ambientCtx = null;
-    let ambientGain = null;
-    let ambientPlaying = false;
-    let isTrackInitialized = false;
-
-    // Track Generators nodes references to be able to stop them
-    let droneOscillators = [];
-    let noiseWaveSource = null;
-    let noiseWaveGain = null;
-    let waveLfoInterval = null;
-    let lyreInterval = null;
-
-    // Scale notes for the Lyre (D Dorian - D4, E4, F4, G4, A4, B4, C5, D5)
-    const LYRE_SCALE = [293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
-
-    // Lazy initialization of Synth contexts
-    function initAudioContexts() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (!ambientCtx) {
-        ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
-        ambientGain = ambientCtx.createGain();
-        // Default volume 40%
-        ambientGain.gain.setValueAtTime(0.4, ambientCtx.currentTime);
-        ambientGain.connect(ambientCtx.destination);
-      }
-    }
-
-    function toggleSoundEffects() {
-      soundEffectsEnabled = !soundEffectsEnabled;
-      const soundIcon = document.getElementById('soundIcon');
-      if (soundEffectsEnabled) {
-        soundIcon.setAttribute('data-lucide', 'volume-2');
-        soundIcon.classList.remove('text-red-400');
-        playSynthSound(440, 'sine', 0.1, 0.1);
-      } else {
-        soundIcon.setAttribute('data-lucide', 'volume-x');
-        soundIcon.classList.add('text-red-400');
-      }
-      lucide.createIcons();
-    }
-
-    function playSynthSound(frequency, type, duration, volume) {
-      if (!soundEffectsEnabled) return;
-      initAudioContexts();
-      try {
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        osc.type = type || 'sine';
-        osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-        
-        gainNode.gain.setValueAtTime(volume || 0.1, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-        
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {
-        console.warn("L'audio n'a pas pu se lancer", e);
-      }
-    }
-
-    // -----------------------------------------------------------------
-    // PROCEDURAL AMBIENT SOUND GENERATOR (Web Audio API Engine)
-    // -----------------------------------------------------------------
-    
-    function toggleAmbientMusic() {
-      initAudioContexts();
-      
-      const btnIcon = document.getElementById('btnPlayAmbientIcon');
-      const btnText = document.getElementById('btnPlayAmbientText');
-      const visualizer = document.getElementById('visualizer');
-
-      if (ambientPlaying) {
-        // Stop Music
-        stopAllAmbientTracks();
-        ambientPlaying = false;
-        btnIcon.setAttribute('data-lucide', 'play');
-        btnText.innerText = "Lancer la Musique";
-        visualizer.classList.remove('playing');
-      } else {
-        // Start Music
-        if (ambientCtx.state === 'suspended') {
-          ambientCtx.resume();
-        }
-        const selectedTrack = document.getElementById('ambientTrackSelect').value;
-        startAmbientTrack(selectedTrack);
-        ambientPlaying = true;
-        btnIcon.setAttribute('data-lucide', 'pause');
-        btnText.innerText = "Couper l'ambiance";
-        visualizer.classList.add('playing');
-      }
-      lucide.createIcons();
-    }
-
-    function changeAmbientTrack(trackType) {
-      const label = document.getElementById('currentTrackLabel');
-      if (trackType === 'alexandrie') {
-        label.innerText = "Rivages d'Alexandrie";
-      } else {
-        label.innerText = "Mystères d'Éphèse";
-      }
-
-      if (ambientPlaying) {
-        stopAllAmbientTracks();
-        startAmbientTrack(trackType);
-      }
-    }
-
-    function changeAmbientVolume(val) {
-      initAudioContexts();
-      const gainVal = val / 100;
-      ambientGain.gain.setTargetAtTime(gainVal, ambientCtx.currentTime, 0.1);
-    }
-
-    // Helper: Generate White Noise for sea waves sound
-    function createNoiseBuffer() {
-      const bufferSize = 2 * ambientCtx.sampleRate;
-      const noiseBuffer = ambientCtx.createBuffer(1, bufferSize, ambientCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-      return noiseBuffer;
-    }
-
-    function startAmbientTrack(trackType) {
-      initAudioContexts();
-      stopAllAmbientTracks();
-
-      if (trackType === 'alexandrie') {
-        // --- 1. OCEAN WAVES NOISE GENERATION ---
-        const noiseBuffer = createNoiseBuffer();
-        noiseWaveSource = ambientCtx.createBufferSource();
-        noiseWaveSource.buffer = noiseBuffer;
-        noiseWaveSource.loop = true;
-
-        const noiseFilter = ambientCtx.createBiquadFilter();
-        noiseFilter.type = 'lowpass';
-        noiseFilter.frequency.setValueAtTime(400, ambientCtx.currentTime);
-
-        noiseWaveGain = ambientCtx.createGain();
-        noiseWaveGain.gain.setValueAtTime(0.01, ambientCtx.currentTime);
-
-        noiseWaveSource.connect(noiseFilter);
-        noiseFilter.connect(noiseWaveGain);
-        noiseWaveGain.connect(ambientGain);
-        noiseWaveSource.start();
-
-        // LFO (Sea swell automation) every 8 seconds loop
-        let swellDirection = true;
-        waveLfoInterval = setInterval(() => {
-          const targetVolume = swellDirection ? 0.08 : 0.01;
-          const targetFreq = swellDirection ? 800 : 300;
-          noiseWaveGain.gain.setTargetAtTime(targetVolume, ambientCtx.currentTime, 2.5);
-          noiseFilter.frequency.setTargetAtTime(targetFreq, ambientCtx.currentTime, 3.0);
-          swellDirection = !swellDirection;
-        }, 4000);
-
-        // --- 2. DEEP MYSTICAL DRONE BASE (Open fifths) ---
-        // Base notes: D2 (73Hz), A2 (110Hz), D3 (146Hz)
-        const rootFreqs = [73.42, 110.00, 146.83];
-        rootFreqs.forEach(freq => {
-          const osc = ambientCtx.createOscillator();
-          const oscFilter = ambientCtx.createBiquadFilter();
-          const oscGain = ambientCtx.createGain();
-
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
-          
-          oscFilter.type = 'lowpass';
-          oscFilter.frequency.setValueAtTime(200, ambientCtx.currentTime);
-
-          oscGain.gain.setValueAtTime(0.12, ambientCtx.currentTime);
-
-          osc.connect(oscFilter);
-          oscFilter.connect(oscGain);
-          oscGain.connect(ambientGain);
-          
-          osc.start();
-          droneOscillators.push(osc);
-        });
-
-      } else if (trackType === 'ephese') {
-        // --- 1. SHINING TEMPLE AMBIENCE DRONE ---
-        // G-minor drone chords: G2 (98Hz), D3 (146Hz), G3 (196Hz), Bb3 (233Hz)
-        const templeFreqs = [98.00, 146.83, 196.00, 233.08];
-        templeFreqs.forEach(freq => {
-          const osc = ambientCtx.createOscillator();
-          const oscFilter = ambientCtx.createBiquadFilter();
-          const oscGain = ambientCtx.createGain();
-
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
-          
-          oscFilter.type = 'lowpass';
-          oscFilter.frequency.setValueAtTime(350, ambientCtx.currentTime);
-          
-          oscGain.gain.setValueAtTime(0.08, ambientCtx.currentTime);
-
-          osc.connect(oscFilter);
-          oscFilter.connect(oscGain);
-          oscGain.connect(ambientGain);
-          
-          osc.start();
-          droneOscillators.push(osc);
-        });
-
-        // --- 2. RANDOM GREEK LYRE PLUCKS ENGINE ---
-        lyreInterval = setInterval(() => {
-          if (Math.random() > 0.3) { // 70% chance to pluck a note
-            const randomNote = LYRE_SCALE[Math.floor(Math.random() * LYRE_SCALE.length)];
-            triggerLyrePluck(randomNote);
-          }
-        }, 1200);
-      }
-    }
-
-    function triggerLyrePluck(freq) {
-      if (!ambientCtx || !ambientGain) return;
-      
-      const pluckOsc = ambientCtx.createOscillator();
-      const pluckGain = ambientCtx.createGain();
-      
-      pluckOsc.type = 'triangle';
-      pluckOsc.frequency.setValueAtTime(freq, ambientCtx.currentTime);
-      
-      // Pluck pluck sound envelope (instant attack, long decay)
-      pluckGain.gain.setValueAtTime(0.06, ambientCtx.currentTime);
-      pluckGain.gain.exponentialRampToValueAtTime(0.00001, ambientCtx.currentTime + 2.5);
-      
-      pluckOsc.connect(pluckGain);
-      pluckGain.connect(ambientGain);
-      
-      pluckOsc.start();
-      pluckOsc.stop(ambientCtx.currentTime + 2.6);
-    }
-
-    function stopAllAmbientTracks() {
-      // Clear wave loops
-      if (waveLfoInterval) {
-        clearInterval(waveLfoInterval);
-        waveLfoInterval = null;
-      }
-      if (lyreInterval) {
-        clearInterval(lyreInterval);
-        lyreInterval = null;
-      }
-
-      // Stop ocean wave noise source
-      if (noiseWaveSource) {
-        try { noiseWaveSource.stop(); } catch(e) {}
-        noiseWaveSource = null;
-      }
-      noiseWaveGain = null;
-
-      // Stop all oscillators
-      droneOscillators.forEach(osc => {
-        try { osc.stop(); } catch(e) {}
-      });
-      droneOscillators = [];
-    }
-
-    function playDraftSound(index) {
-      setTimeout(() => {
-        playSynthSound(300 + (index * 120), 'triangle', 0.25, 0.12);
-      }, index * 120);
-    }
-
-    // -----------------------------------------------------------------
-    // GAME COMPANION LOGIC
-    // -----------------------------------------------------------------
-
+    // Database de merveilles
     const WONDERS = {
       base: [
         { 
@@ -720,8 +415,6 @@
       if (players.length < maxAllowed) {
         players.push(`Bâtisseur ${players.length + 1}`);
         renderPlayers();
-        playSynthSound(440 + (players.length * 50), 'sine', 0.1, 0.1);
-        
         const container = document.getElementById('playersContainer');
         container.scrollTop = container.scrollHeight;
       }
@@ -731,7 +424,6 @@
       if (players.length > 2) {
         players.splice(index, 1);
         renderPlayers();
-        playSynthSound(300, 'sine', 0.1, 0.1);
       }
     }
 
@@ -766,7 +458,6 @@
     }
 
     function fillHistoricalNames() {
-      playSynthSound(600, 'triangle', 0.15, 0.1);
       const shuffledNames = [...MYTHICAL_NAMES].sort(() => Math.random() - 0.5);
       players = players.map((_, i) => shuffledNames[i] || `Bâtisseur ${i + 1}`);
       renderPlayers();
@@ -783,11 +474,6 @@
     }
 
     function distributeWonders() {
-      // Audio Cue
-      playSynthSound(220, 'square', 0.1, 0.1);
-      setTimeout(() => playSynthSound(440, 'square', 0.1, 0.1), 80);
-      setTimeout(() => playSynthSound(880, 'sine', 0.3, 0.15), 160);
-
       const hasMedals = document.getElementById('extensionMedals').checked;
       const draftMode = document.getElementById('draftMode').checked;
       
@@ -830,7 +516,7 @@
       displayResults(results);
       
       confetti({
-        particleCount: 60,
+        particleCount: 70,
         spread: 60,
         origin: { y: 0.6 },
         colors: ['#D4AF37', '#F3E5AB', '#8B6508']
@@ -847,11 +533,9 @@
       container.innerHTML = '';
 
       results.forEach((res, index) => {
-        playDraftSound(index);
-        
         const card = document.createElement('div');
         card.className = `bg-architect-cardDark border rounded-2xl p-4 flex flex-col justify-between shadow-lg opacity-0 card-reveal`;
-        card.style.animationDelay = `${index * 120}ms`;
+        card.style.animationDelay = `${index * 100}ms`;
 
         if (res.isDraft) {
           card.classList.add('border-cyan-500/20', 'bg-gradient-to-br', 'from-cyan-950/15', 'to-architect-cardDark');
@@ -941,7 +625,6 @@
       document.execCommand("copy");
       document.body.removeChild(dummy);
 
-      playSynthSound(523, 'sine', 0.15, 0.15);
       const toast = document.getElementById('toast');
       toast.classList.remove('hidden');
       setTimeout(() => {
@@ -950,7 +633,6 @@
     }
 
     function showHelpModal() {
-      playSynthSound(600, 'sine', 0.1, 0.1);
       document.getElementById('helpModal').classList.remove('hidden');
     }
 
