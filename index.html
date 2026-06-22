@@ -455,7 +455,7 @@
       <div class="track-emoji" id="trackEmoji">🏺</div>
       <div class="track-info">
         <div class="track-name" id="trackName">Alexandrie</div>
-        <div class="track-sub" id="trackSub">Nappes antiques · Harpe & Vents</div>
+        <div class="track-sub" id="trackSub">Drones & Bols Chantants · Égypte Mystique</div>
       </div>
       <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
     </div>
@@ -648,81 +648,67 @@
       document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ── Audio Engine ──────────────────────────────────────
-    // Chord progressions + structured melody + arpèges + reverb + compresseur
+    // ── Audio Engine — Drones / Vent / Bols Chantants ────────
+    // No rhythm, no melody — pure textural ambiance
 
     const THEMES = {
       alexandrie: {
-        name: 'Alexandrie', sub: 'Mystères d\'Égypte · Nappes & Harpe', emoji: '🏺',
-        bpm: 56, bpc: 8,
-        // Am – F – C – G
-        ch: [
-          { b: 55.00, p: [110.00, 130.81, 164.81] },
-          { b: 87.31, p: [ 87.31, 110.00, 130.81] },
-          { b: 65.41, p: [130.81, 164.81, 196.00] },
-          { b: 98.00, p: [ 98.00, 123.47, 146.83] },
+        name: 'Alexandrie', sub: 'Drones & Bols Chantants · Égypte Mystique', emoji: '🏺',
+        drones: [
+          { f: 55.00, v: 0.14 }, { f: 110.00, v: 0.11 }, { f: 164.81, v: 0.07 },
+          { f: 220.00, v: 0.04 }, { f: 261.63, v: 0.025 },
         ],
-        sc: [220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25],
-        ar: [0, 1, 2, 1, 0, 2, 1, 0],
-        ml: [0, -1,  2, -1,  1,  3, -1,  2,  4, -1,  3,  1, -1,  2, -1,  0],
+        bowls: [220.00, 164.81, 329.63, 261.63],
+        windFreq: 360, windQ: 3.2, windVol: 0.032,
+        pad: [440.00, 329.63, 523.25],
       },
       babylone: {
-        name: 'Babylone', sub: 'Orient Mystique · Gamme Phrygienne', emoji: '🌿',
-        bpm: 63, bpc: 8,
-        // Dm – Bb – F – A
-        ch: [
-          { b: 73.42, p: [146.83, 174.61, 220.00] },
-          { b: 58.27, p: [116.54, 146.83, 174.61] },
-          { b: 87.31, p: [174.61, 220.00, 261.63] },
-          { b: 55.00, p: [110.00, 138.59, 164.81] },
+        name: 'Babylone', sub: 'Résonances Orientales · Modes Antiques', emoji: '🌿',
+        drones: [
+          { f: 73.42, v: 0.14 }, { f: 146.83, v: 0.10 }, { f: 110.00, v: 0.07 },
+          { f: 174.61, v: 0.045 }, { f: 220.00, v: 0.03 },
         ],
-        sc: [293.66, 311.13, 369.99, 392.00, 440.00, 466.16, 554.37],
-        ar: [0, 2, 1, 2, 0, 1, 2, 0],
-        ml: [0,  1, -1,  2, -1,  3,  1, -1,  4, -1,  3,  2, -1,  1, -1,  0],
+        bowls: [146.83, 110.00, 220.00, 174.61],
+        windFreq: 480, windQ: 4.5, windVol: 0.028,
+        pad: [293.66, 369.99, 440.00],
       },
       gizeh: {
-        name: 'Gizeh', sub: 'Épopée des Pyramides · Cors & Cordes', emoji: '🔺',
-        bpm: 70, bpc: 8,
-        // G – C – Em – D
-        ch: [
-          { b: 49.00, p: [ 98.00, 123.47, 146.83] },
-          { b: 65.41, p: [130.81, 164.81, 196.00] },
-          { b: 82.41, p: [ 82.41,  98.00, 123.47] },
-          { b: 73.42, p: [ 73.42,  92.50, 110.00] },
+        name: 'Gizeh', sub: 'Éternité de Pierre · Harmoniques Épiques', emoji: '🔺',
+        drones: [
+          { f: 49.00, v: 0.15 }, { f: 98.00, v: 0.12 }, { f: 146.83, v: 0.08 },
+          { f: 196.00, v: 0.05 }, { f: 246.94, v: 0.03 },
         ],
-        sc: [196.00, 220.00, 246.94, 293.66, 329.63, 392.00, 440.00],
-        ar: [0, 1, 2, 1, 2, 0, 1, 2],
-        ml: [2, -1,  4,  3, -1,  5,  4, -1,  3,  4, -1,  2,  1, -1,  2, -1],
+        bowls: [196.00, 146.83, 392.00, 246.94],
+        windFreq: 680, windQ: 2.8, windVol: 0.038,
+        pad: [392.00, 493.88, 587.33],
       }
     };
 
     let actx = null, master = null, rev = null;
     let playing = false, currentTheme = 'alexandrie';
-    let schedTimer = null, nextTime = 0, beat = 0;
-    let livePad = [], liveBass = [];
-    const LOOK = 0.15, TICK = 50;
+    let allOscs = [], allLfos = [], allGains = [];
+    let windSrc = null, bowlTimer = null;
 
     function initCtx() {
       if (actx) return;
       actx = new (window.AudioContext || window.webkitAudioContext)();
       master = actx.createGain();
-      master.gain.value = document.getElementById('volSlider').value / 100 * 0.55;
+      master.gain.value = document.getElementById('volSlider').value / 100 * 0.6;
 
-      // Compressor prevents clipping when layers stack
       const comp = actx.createDynamicsCompressor();
-      comp.threshold.value = -14; comp.ratio.value = 5;
-      comp.attack.value = 0.005;  comp.release.value = 0.25;
+      comp.threshold.value = -12; comp.ratio.value = 4;
+      comp.attack.value = 0.01; comp.release.value = 0.4;
       master.connect(comp); comp.connect(actx.destination);
 
-      // 2-tap reverb with LP filter + feedback
+      // Long reverb: 2 delay taps with LP feedback
       rev = actx.createGain();
-      const d1 = actx.createDelay(2.0), d2 = actx.createDelay(1.0);
-      d1.delayTime.value = 0.41; d2.delayTime.value = 0.13;
+      const d1 = actx.createDelay(3.0), d2 = actx.createDelay(2.0);
+      d1.delayTime.value = 0.73; d2.delayTime.value = 0.47;
       const fb1 = actx.createGain(), fb2 = actx.createGain();
-      fb1.gain.value = 0.46; fb2.gain.value = 0.29;
+      fb1.gain.value = 0.52; fb2.gain.value = 0.38;
       const lp = actx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 2200;
-      const ro = actx.createGain(); ro.gain.value = 0.38;
+      lp.type = 'lowpass'; lp.frequency.value = 1800;
+      const ro = actx.createGain(); ro.gain.value = 0.42;
       rev.connect(d1); rev.connect(d2);
       d1.connect(lp); d2.connect(lp);
       lp.connect(fb1); lp.connect(fb2); lp.connect(ro);
@@ -730,110 +716,141 @@
       ro.connect(master);
     }
 
-    // Create oscillator + gain node, route direct + reverb send
-    function note(freq, type, det, at, stopAt, peak, atk, hold, rel, revR, expDecay) {
-      const o = actx.createOscillator();
-      o.type = type; o.frequency.value = freq; o.detune.value = det || 0;
-      const g  = actx.createGain(); g.gain.value = 0.0001;
-      const rg = actx.createGain(); rg.gain.value = revR || 0;
-      o.connect(g);
-      g.connect(master); // direct
-      g.connect(rg); rg.connect(rev); // reverb send (follows g's envelope)
-      o.start(at); if (stopAt) o.stop(stopAt);
-      g.gain.setValueAtTime(0.0001, at);
-      g.gain.linearRampToValueAtTime(peak, at + atk);
-      if (hold > 0) g.gain.setValueAtTime(peak, at + atk + hold);
-      const end = at + atk + hold + rel;
-      expDecay
-        ? g.gain.exponentialRampToValueAtTime(0.0001, end)
-        : g.gain.linearRampToValueAtTime(0.0001, end);
-      return { o, g };
+    function route(osc, g, revAmt) {
+      const rg = actx.createGain(); rg.gain.value = revAmt;
+      osc.connect(g); g.connect(master); g.connect(rg); rg.connect(rev);
+      allOscs.push(osc); allGains.push(g);
     }
 
-    function kill(list, at, fade) {
-      list.forEach(({ o, g }) => {
+    function makeLfo(rate, depth, target) {
+      const lfo = actx.createOscillator();
+      const lg  = actx.createGain();
+      lfo.frequency.value = rate; lg.gain.value = depth;
+      lfo.connect(lg); lg.connect(target);
+      lfo.start(); allLfos.push(lfo);
+      return lfo;
+    }
+
+    function startDrones(th) {
+      th.drones.forEach(({ f, v }) => {
+        [-2, 0, 2].forEach((cents, i) => {
+          const o = actx.createOscillator();
+          o.type = 'sine'; o.frequency.value = f; o.detune.value = cents;
+          const g = actx.createGain(); g.gain.value = 0.0001;
+          route(o, g, 0.55);
+          o.start();
+          g.gain.linearRampToValueAtTime(v * (i === 1 ? 1 : 0.55), actx.currentTime + 4.5);
+          // Each voice gets its own slow LFO for organic beating
+          const lfoRate = 0.04 + i * 0.023 + Math.random() * 0.015;
+          makeLfo(lfoRate, f * 0.003, o.frequency);
+        });
+      });
+    }
+
+    function startWind(th) {
+      const bufSec = 2;
+      const buf = actx.createBuffer(1, actx.sampleRate * bufSec, actx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+      windSrc = actx.createBufferSource();
+      windSrc.buffer = buf; windSrc.loop = true;
+
+      const bpf = actx.createBiquadFilter();
+      bpf.type = 'bandpass'; bpf.frequency.value = th.windFreq; bpf.Q.value = th.windQ;
+
+      const lpf = actx.createBiquadFilter();
+      lpf.type = 'lowpass'; lpf.frequency.value = 800;
+
+      const wg = actx.createGain(); wg.gain.value = 0.0001;
+
+      windSrc.connect(bpf); bpf.connect(lpf); lpf.connect(wg);
+      wg.connect(master); wg.connect(rev);
+
+      windSrc.start();
+      wg.gain.linearRampToValueAtTime(th.windVol, actx.currentTime + 5.0);
+
+      // Very slow LFO on filter freq for breathing wind texture
+      makeLfo(0.04, th.windFreq * 0.18, bpf.frequency);
+      allGains.push(wg);
+    }
+
+    function startPad(th) {
+      th.pad.forEach((f, i) => {
+        const o = actx.createOscillator();
+        o.type = 'sine'; o.frequency.value = f;
+        const g = actx.createGain(); g.gain.value = 0.0001;
+        route(o, g, 0.7);
+        o.start();
+        g.gain.linearRampToValueAtTime(0.018 - i * 0.004, actx.currentTime + 7.0);
+        // Shimmer: fast LFO on gain
+        makeLfo(0.08 + i * 0.031, 0.006, g.gain);
+      });
+    }
+
+    function playBowl(freq) {
+      if (!actx || !playing) return;
+      const now = actx.currentTime;
+      const dur = 8.0;
+
+      // FM synthesis: inharmonic ratio gives bell/bowl timbre
+      const mod = actx.createOscillator();
+      const modG = actx.createGain();
+      mod.frequency.value = freq * 2.756;
+      modG.gain.setValueAtTime(freq * 5.5, now);
+      modG.gain.exponentialRampToValueAtTime(freq * 0.04, now + dur);
+      mod.connect(modG); modG.connect(/* carrier freq param below */null);
+
+      const car = actx.createOscillator();
+      car.frequency.value = freq;
+      modG.connect(car.frequency); // FM modulation
+
+      const eg = actx.createGain();
+      eg.gain.setValueAtTime(0.0001, now);
+      eg.gain.linearRampToValueAtTime(0.22, now + 0.012);
+      eg.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+      const rg = actx.createGain(); rg.gain.value = 0.8;
+      car.connect(eg); eg.connect(master); eg.connect(rg); rg.connect(rev);
+
+      mod.start(now); mod.stop(now + dur + 0.1);
+      car.start(now); car.stop(now + dur + 0.1);
+    }
+
+    function scheduleBowls() {
+      if (!playing) return;
+      const th = THEMES[currentTheme];
+      const freq = th.bowls[Math.floor(Math.random() * th.bowls.length)];
+      playBowl(freq);
+      const next = 4000 + Math.random() * 8000;
+      bowlTimer = setTimeout(scheduleBowls, next);
+    }
+
+    function startAudio() {
+      allOscs = []; allLfos = []; allGains = []; windSrc = null;
+      const th = THEMES[currentTheme];
+      startDrones(th);
+      startWind(th);
+      startPad(th);
+      bowlTimer = setTimeout(scheduleBowls, 1500 + Math.random() * 3000);
+    }
+
+    function stopAudio() {
+      clearTimeout(bowlTimer); bowlTimer = null;
+      if (windSrc) { try { windSrc.stop(); } catch(e) {} windSrc = null; }
+      const now = actx.currentTime;
+      allGains.forEach(g => {
         try {
-          g.gain.cancelScheduledValues(at);
-          g.gain.setValueAtTime(g.gain.value, at);
-          g.gain.linearRampToValueAtTime(0.0001, at + fade);
-          o.stop(at + fade + 0.1);
+          g.gain.cancelScheduledValues(now);
+          g.gain.setValueAtTime(g.gain.value, now);
+          g.gain.linearRampToValueAtTime(0.0001, now + 1.6);
         } catch(e) {}
       });
-    }
-
-    function playPad(ch, at, dur) {
-      kill(livePad, at, 1.6); livePad = [];
-      ch.p.forEach(f => {
-        // 3 detuned voices per chord tone = thick pad
-        livePad.push(note(f,     'sine',     0,  at, at+dur+2, 0.055, 2.0, dur-2.5, 1.5, 0.5, false));
-        livePad.push(note(f,     'sine',     8,  at, at+dur+2, 0.028, 2.2, dur-2.7, 1.5, 0.5, false));
-        livePad.push(note(f,     'triangle',-8,  at, at+dur+2, 0.020, 2.4, dur-2.9, 1.5, 0.4, false));
-        livePad.push(note(f * 2, 'sine',     0,  at, at+dur+2, 0.012, 2.8, dur-3.2, 1.5, 0.5, false));
-      });
-    }
-
-    function playBass(ch, at, dur) {
-      kill(liveBass, at, 0.4); liveBass = [];
-      liveBass.push(note(ch.b,     'sine', 0, at, at+dur+0.6, 0.17, 0.25, dur-0.5, 0.4, 0.15, false));
-      liveBass.push(note(ch.b / 2, 'sine', 0, at, at+dur+0.6, 0.07, 0.30, dur-0.5, 0.4, 0.10, false));
-    }
-
-    function playArp(freq, at) {
-      // Plucked: fast attack, exponential decay
-      note(freq * 2, 'sine',     0, at, at+1.2, 0.055, 0.012, 0, 1.1, 0.5, true);
-      note(freq * 2, 'triangle', 6, at, at+0.9, 0.022, 0.008, 0, 0.8, 0.4, true);
-    }
-
-    function playMel(freq, at) {
-      // Flute-like: soft attack, medium decay, chorus via detuned copy
-      note(freq,     'sine', 0,  at, at+1.5, 0.065, 0.04, 0.45, 0.9, 0.5, true);
-      note(freq,     'sine', -5, at, at+1.5, 0.028, 0.04, 0.45, 0.9, 0.4, true);
-      note(freq * 2, 'sine', 0,  at, at+1.2, 0.010, 0.04, 0.30, 0.8, 0.5, true);
-    }
-
-    function sched() {
-      const th = THEMES[currentTheme];
-      const bd = 60 / th.bpm; // beat duration in seconds
-
-      while (nextTime < actx.currentTime + LOOK) {
-        const ci  = Math.floor(beat / th.bpc) % th.ch.length;
-        const bic = beat % th.bpc;
-        const ch  = th.ch[ci];
-
-        // New chord every th.bpc beats
-        if (bic === 0) {
-          const cdur = th.bpc * bd;
-          playPad(ch, nextTime, cdur);
-          playBass(ch, nextTime, cdur);
-        }
-
-        // Arpeggio on the beat
-        playArp(ch.p[th.ar[bic % th.ar.length]], nextTime);
-        // Arp fill on the half-beat (8th note feel)
-        playArp(ch.p[th.ar[(bic * 2 + 1) % th.ar.length]], nextTime + bd * 0.5);
-
-        // Melody note every 2 beats, offset by quarter-beat
-        if (bic % 2 === 0) {
-          const mi = Math.floor(beat / 2) % th.ml.length;
-          const si = th.ml[mi];
-          if (si >= 0) playMel(th.sc[si % th.sc.length], nextTime + bd * 0.25);
-        }
-
-        nextTime += bd;
-        beat++;
-      }
-    }
-
-    function startSynth() {
-      beat = 0; nextTime = actx.currentTime + 0.05;
-      schedTimer = setInterval(sched, TICK);
-    }
-
-    function stopSynth() {
-      clearInterval(schedTimer); schedTimer = null;
-      const now = actx.currentTime;
-      kill(livePad,  now, 1.2); livePad  = [];
-      kill(liveBass, now, 0.6); liveBass = [];
+      const oscs = [...allOscs, ...allLfos];
+      setTimeout(() => {
+        oscs.forEach(o => { try { o.stop(); } catch(e) {} });
+        allOscs = []; allLfos = []; allGains = [];
+      }, 1700);
     }
 
     function togglePlay() {
@@ -844,12 +861,12 @@
       const eq  = document.getElementById('eq');
       const dot = document.getElementById('dot');
       if (playing) {
-        startSynth();
+        startAudio();
         btn.textContent = '⏸';
         eq.classList.add('active');
         dot.classList.add('active');
       } else {
-        stopSynth();
+        stopAudio();
         btn.textContent = '▶';
         eq.classList.remove('active');
         dot.classList.remove('active');
@@ -864,11 +881,11 @@
       document.getElementById('trackName').textContent  = th.name;
       document.getElementById('trackSub').textContent   = th.sub;
       document.getElementById('trackEmoji').textContent = th.emoji;
-      if (playing) { stopSynth(); beat = 0; nextTime = actx.currentTime + 0.1; startSynth(); }
+      if (playing) { stopAudio(); playing = false; setTimeout(() => { playing = true; startAudio(); }, 1800); }
     }
 
     function setVol(v) {
-      if (master) master.gain.value = v / 100 * 0.55;
+      if (master) master.gain.value = v / 100 * 0.6;
     }
     // ── End Audio Engine ──────────────────────────────────
 
