@@ -432,6 +432,93 @@
       height: 3px;
       cursor: pointer;
     }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 1.5px dashed #2a2d3e;
+      border-radius: 12px;
+      padding: 1.4rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 0.9rem;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #D4AF37;
+      background: #D4AF3708;
+    }
+    .drop-icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+    .drop-text { font-size: 0.85rem; color: #e2e8f0; font-weight: 600; margin-bottom: 0.25rem; }
+    .drop-sub  { font-size: 0.68rem; color: #475569; }
+    .drop-hint {
+      margin-top: 0.6rem;
+      font-size: 0.65rem;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .drop-hint a { color: #D4AF3790; text-decoration: none; }
+    .drop-hint a:hover { color: #D4AF37; }
+
+    /* Controls */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.8rem;
+    }
+    .ctrl-btn {
+      width: 34px; height: 34px;
+      background: #111318;
+      border: 1px solid #2a2d3e;
+      border-radius: 50%;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .ctrl-btn:hover { border-color: #D4AF37; color: #D4AF37; }
+
+    /* Progress */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .time-label { font-size: 0.65rem; color: #475569; flex-shrink: 0; min-width: 30px; }
+    input[type=range].progress {
+      flex: 1;
+      accent-color: #D4AF37;
+      height: 3px;
+      cursor: pointer;
+    }
+
+    /* Playlist */
+    .playlist {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .pl-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-size: 0.75rem;
+    }
+    .pl-item:hover  { background: #D4AF3710; }
+    .pl-item.pl-active { background: #D4AF3718; }
+    .pl-num  { color: #475569; min-width: 16px; text-align: right; font-size: 0.68rem; }
+    .pl-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1; }
+    .pl-now  { color: #D4AF37; font-size: 0.6rem; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -451,26 +538,54 @@
       </div>
     </div>
 
-    <div class="player-body">
-      <div class="track-emoji" id="trackEmoji">🏺</div>
+    <!-- Drop zone (visible when no file loaded) -->
+    <div class="drop-zone" id="dropZone"
+         onclick="document.getElementById('fileInput').click()"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)">
+      <input type="file" id="fileInput" accept="audio/*" multiple style="display:none" onchange="onFilePick(event)">
+      <div class="drop-icon">🎵</div>
+      <div class="drop-text">Glisser vos fichiers audio ici</div>
+      <div class="drop-sub">MP3 · OGG · WAV · FLAC · M4A — ou cliquer pour parcourir</div>
+      <div class="drop-hint">
+        Musique libre de droits : <a href="https://freemusicarchive.org" target="_blank">Free Music Archive</a> ·
+        <a href="https://musopen.org" target="_blank">Musopen</a> ·
+        <a href="https://pixabay.com/music" target="_blank">Pixabay Music</a>
+      </div>
+    </div>
+
+    <!-- Track display (hidden until file loaded) -->
+    <div class="player-body" id="playerBody" style="display:none">
+      <div class="track-emoji" id="trackEmoji">🎵</div>
       <div class="track-info">
-        <div class="track-name" id="trackName">Alexandrie</div>
-        <div class="track-sub" id="trackSub">Drones & Bols Chantants · Égypte Mystique</div>
+        <div class="track-name" id="trackName">–</div>
+        <div class="track-sub" id="trackSub">Aucun fichier chargé</div>
       </div>
       <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
     </div>
 
-    <div class="theme-row">
-      <button class="theme-btn active-theme" onclick="setTheme('alexandrie', this)">🏺 Alexandrie</button>
-      <button class="theme-btn" onclick="setTheme('babylone', this)">🌿 Babylone</button>
-      <button class="theme-btn" onclick="setTheme('gizeh', this)">🔺 Gizeh</button>
+    <!-- Controls (hidden until file loaded) -->
+    <div class="controls-row" id="controlsRow" style="display:none">
+      <button class="ctrl-btn" title="Précédent" onclick="prevTrack()">⏮</button>
+      <button class="ctrl-btn" title="Ajouter des fichiers" onclick="document.getElementById('fileInput').click()">＋</button>
+      <button class="ctrl-btn" title="Suivant" onclick="nextTrack()">⏭</button>
+    </div>
+
+    <!-- Progress bar (hidden until file loaded) -->
+    <div class="progress-wrap" id="progressWrap" style="display:none">
+      <span class="time-label" id="timeCur">0:00</span>
+      <input type="range" class="progress" id="progressBar" min="0" max="100" value="0" oninput="seek(this.value)">
+      <span class="time-label" id="timeTot">0:00</span>
     </div>
 
     <div class="vol-row">
       <span class="vol-icon">🔈</span>
-      <input type="range" class="vol" id="volSlider" min="0" max="100" value="45" oninput="setVol(this.value)">
+      <input type="range" class="vol" id="volSlider" min="0" max="100" value="70" oninput="setVol(this.value)">
       <span class="vol-icon">🔊</span>
     </div>
+
+    <div class="playlist" id="playlist"></div>
   </div>
 
   <!-- Players -->
@@ -648,246 +763,112 @@
       document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ── Audio Engine — Drones / Vent / Bols Chantants ────────
-    // No rhythm, no melody — pure textural ambiance
+    // ── Audio Engine — HTML5 Audio ────────────────────────
+    const audio = new Audio();
+    audio.volume = 0.7;
+    let playlist = [];
+    let trackIdx  = 0;
+    let playing   = false;
 
-    const THEMES = {
-      alexandrie: {
-        name: 'Alexandrie', sub: 'Drones & Bols Chantants · Égypte Mystique', emoji: '🏺',
-        drones: [
-          { f: 55.00, v: 0.14 }, { f: 110.00, v: 0.11 }, { f: 164.81, v: 0.07 },
-          { f: 220.00, v: 0.04 }, { f: 261.63, v: 0.025 },
-        ],
-        bowls: [220.00, 164.81, 329.63, 261.63],
-        windFreq: 360, windQ: 3.2, windVol: 0.032,
-        pad: [440.00, 329.63, 523.25],
-      },
-      babylone: {
-        name: 'Babylone', sub: 'Résonances Orientales · Modes Antiques', emoji: '🌿',
-        drones: [
-          { f: 73.42, v: 0.14 }, { f: 146.83, v: 0.10 }, { f: 110.00, v: 0.07 },
-          { f: 174.61, v: 0.045 }, { f: 220.00, v: 0.03 },
-        ],
-        bowls: [146.83, 110.00, 220.00, 174.61],
-        windFreq: 480, windQ: 4.5, windVol: 0.028,
-        pad: [293.66, 369.99, 440.00],
-      },
-      gizeh: {
-        name: 'Gizeh', sub: 'Éternité de Pierre · Harmoniques Épiques', emoji: '🔺',
-        drones: [
-          { f: 49.00, v: 0.15 }, { f: 98.00, v: 0.12 }, { f: 146.83, v: 0.08 },
-          { f: 196.00, v: 0.05 }, { f: 246.94, v: 0.03 },
-        ],
-        bowls: [196.00, 146.83, 392.00, 246.94],
-        windFreq: 680, windQ: 2.8, windVol: 0.038,
-        pad: [392.00, 493.88, 587.33],
-      }
-    };
-
-    let actx = null, master = null, rev = null;
-    let playing = false, currentTheme = 'alexandrie';
-    let allOscs = [], allLfos = [], allGains = [];
-    let windSrc = null, bowlTimer = null;
-
-    function initCtx() {
-      if (actx) return;
-      actx = new (window.AudioContext || window.webkitAudioContext)();
-      master = actx.createGain();
-      master.gain.value = document.getElementById('volSlider').value / 100 * 0.6;
-
-      const comp = actx.createDynamicsCompressor();
-      comp.threshold.value = -12; comp.ratio.value = 4;
-      comp.attack.value = 0.01; comp.release.value = 0.4;
-      master.connect(comp); comp.connect(actx.destination);
-
-      // Long reverb: 2 delay taps with LP feedback
-      rev = actx.createGain();
-      const d1 = actx.createDelay(3.0), d2 = actx.createDelay(2.0);
-      d1.delayTime.value = 0.73; d2.delayTime.value = 0.47;
-      const fb1 = actx.createGain(), fb2 = actx.createGain();
-      fb1.gain.value = 0.52; fb2.gain.value = 0.38;
-      const lp = actx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 1800;
-      const ro = actx.createGain(); ro.gain.value = 0.42;
-      rev.connect(d1); rev.connect(d2);
-      d1.connect(lp); d2.connect(lp);
-      lp.connect(fb1); lp.connect(fb2); lp.connect(ro);
-      fb1.connect(d1); fb2.connect(d2);
-      ro.connect(master);
+    function onDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.add('drag-over');
     }
-
-    function route(osc, g, revAmt) {
-      const rg = actx.createGain(); rg.gain.value = revAmt;
-      osc.connect(g); g.connect(master); g.connect(rg); rg.connect(rev);
-      allOscs.push(osc); allGains.push(g);
+    function onDragLeave(e) {
+      document.getElementById('dropZone').classList.remove('drag-over');
     }
-
-    function makeLfo(rate, depth, target) {
-      const lfo = actx.createOscillator();
-      const lg  = actx.createGain();
-      lfo.frequency.value = rate; lg.gain.value = depth;
-      lfo.connect(lg); lg.connect(target);
-      lfo.start(); allLfos.push(lfo);
-      return lfo;
+    function onDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('drag-over');
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|ogg|wav|flac|m4a|aac|opus)$/i.test(f.name));
+      loadFiles(files);
     }
+    function onFilePick(e) { loadFiles(Array.from(e.target.files)); }
 
-    function startDrones(th) {
-      th.drones.forEach(({ f, v }) => {
-        [-2, 0, 2].forEach((cents, i) => {
-          const o = actx.createOscillator();
-          o.type = 'sine'; o.frequency.value = f; o.detune.value = cents;
-          const g = actx.createGain(); g.gain.value = 0.0001;
-          route(o, g, 0.55);
-          o.start();
-          g.gain.linearRampToValueAtTime(v * (i === 1 ? 1 : 0.55), actx.currentTime + 4.5);
-          // Each voice gets its own slow LFO for organic beating
-          const lfoRate = 0.04 + i * 0.023 + Math.random() * 0.015;
-          makeLfo(lfoRate, f * 0.003, o.frequency);
-        });
+    function loadFiles(files) {
+      if (!files.length) return;
+      const wasEmpty = playlist.length === 0;
+      files.forEach(f => {
+        playlist.push({ name: f.name.replace(/\.[^.]+$/, ''), url: URL.createObjectURL(f) });
       });
+      renderPlaylist();
+      if (wasEmpty) { loadTrack(0); showControls(); }
     }
 
-    function startWind(th) {
-      const bufSec = 2;
-      const buf = actx.createBuffer(1, actx.sampleRate * bufSec, actx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-
-      windSrc = actx.createBufferSource();
-      windSrc.buffer = buf; windSrc.loop = true;
-
-      const bpf = actx.createBiquadFilter();
-      bpf.type = 'bandpass'; bpf.frequency.value = th.windFreq; bpf.Q.value = th.windQ;
-
-      const lpf = actx.createBiquadFilter();
-      lpf.type = 'lowpass'; lpf.frequency.value = 800;
-
-      const wg = actx.createGain(); wg.gain.value = 0.0001;
-
-      windSrc.connect(bpf); bpf.connect(lpf); lpf.connect(wg);
-      wg.connect(master); wg.connect(rev);
-
-      windSrc.start();
-      wg.gain.linearRampToValueAtTime(th.windVol, actx.currentTime + 5.0);
-
-      // Very slow LFO on filter freq for breathing wind texture
-      makeLfo(0.04, th.windFreq * 0.18, bpf.frequency);
-      allGains.push(wg);
+    function showControls() {
+      document.getElementById('dropZone').style.display    = 'none';
+      document.getElementById('playerBody').style.display  = 'flex';
+      document.getElementById('controlsRow').style.display = 'flex';
+      document.getElementById('progressWrap').style.display = 'flex';
     }
 
-    function startPad(th) {
-      th.pad.forEach((f, i) => {
-        const o = actx.createOscillator();
-        o.type = 'sine'; o.frequency.value = f;
-        const g = actx.createGain(); g.gain.value = 0.0001;
-        route(o, g, 0.7);
-        o.start();
-        g.gain.linearRampToValueAtTime(0.018 - i * 0.004, actx.currentTime + 7.0);
-        // Shimmer: fast LFO on gain
-        makeLfo(0.08 + i * 0.031, 0.006, g.gain);
-      });
-    }
-
-    function playBowl(freq) {
-      if (!actx || !playing) return;
-      const now = actx.currentTime;
-      const dur = 8.0;
-
-      // FM synthesis: inharmonic ratio gives bell/bowl timbre
-      const mod = actx.createOscillator();
-      const modG = actx.createGain();
-      mod.frequency.value = freq * 2.756;
-      modG.gain.setValueAtTime(freq * 5.5, now);
-      modG.gain.exponentialRampToValueAtTime(freq * 0.04, now + dur);
-      mod.connect(modG); modG.connect(/* carrier freq param below */null);
-
-      const car = actx.createOscillator();
-      car.frequency.value = freq;
-      modG.connect(car.frequency); // FM modulation
-
-      const eg = actx.createGain();
-      eg.gain.setValueAtTime(0.0001, now);
-      eg.gain.linearRampToValueAtTime(0.22, now + 0.012);
-      eg.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-      const rg = actx.createGain(); rg.gain.value = 0.8;
-      car.connect(eg); eg.connect(master); eg.connect(rg); rg.connect(rev);
-
-      mod.start(now); mod.stop(now + dur + 0.1);
-      car.start(now); car.stop(now + dur + 0.1);
-    }
-
-    function scheduleBowls() {
-      if (!playing) return;
-      const th = THEMES[currentTheme];
-      const freq = th.bowls[Math.floor(Math.random() * th.bowls.length)];
-      playBowl(freq);
-      const next = 4000 + Math.random() * 8000;
-      bowlTimer = setTimeout(scheduleBowls, next);
-    }
-
-    function startAudio() {
-      allOscs = []; allLfos = []; allGains = []; windSrc = null;
-      const th = THEMES[currentTheme];
-      startDrones(th);
-      startWind(th);
-      startPad(th);
-      bowlTimer = setTimeout(scheduleBowls, 1500 + Math.random() * 3000);
-    }
-
-    function stopAudio() {
-      clearTimeout(bowlTimer); bowlTimer = null;
-      if (windSrc) { try { windSrc.stop(); } catch(e) {} windSrc = null; }
-      const now = actx.currentTime;
-      allGains.forEach(g => {
-        try {
-          g.gain.cancelScheduledValues(now);
-          g.gain.setValueAtTime(g.gain.value, now);
-          g.gain.linearRampToValueAtTime(0.0001, now + 1.6);
-        } catch(e) {}
-      });
-      const oscs = [...allOscs, ...allLfos];
-      setTimeout(() => {
-        oscs.forEach(o => { try { o.stop(); } catch(e) {} });
-        allOscs = []; allLfos = []; allGains = [];
-      }, 1700);
+    function loadTrack(idx) {
+      trackIdx = idx;
+      audio.src = playlist[idx].url;
+      document.getElementById('trackName').textContent  = playlist[idx].name;
+      document.getElementById('trackSub').textContent   = `Piste ${idx + 1} / ${playlist.length}`;
+      document.getElementById('trackEmoji').textContent = '🎵';
+      document.getElementById('progressBar').value      = 0;
+      document.getElementById('timeCur').textContent    = '0:00';
+      document.getElementById('timeTot').textContent    = '0:00';
+      if (playing) audio.play();
+      renderPlaylist();
     }
 
     function togglePlay() {
-      initCtx();
-      if (actx.state === 'suspended') actx.resume();
+      if (!playlist.length) return;
       playing = !playing;
       const btn = document.getElementById('playBtn');
       const eq  = document.getElementById('eq');
       const dot = document.getElementById('dot');
       if (playing) {
-        startAudio();
+        audio.play();
         btn.textContent = '⏸';
         eq.classList.add('active');
         dot.classList.add('active');
       } else {
-        stopAudio();
+        audio.pause();
         btn.textContent = '▶';
         eq.classList.remove('active');
         dot.classList.remove('active');
       }
     }
 
-    function setTheme(key, btn) {
-      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active-theme'));
-      btn.classList.add('active-theme');
-      currentTheme = key;
-      const th = THEMES[key];
-      document.getElementById('trackName').textContent  = th.name;
-      document.getElementById('trackSub').textContent   = th.sub;
-      document.getElementById('trackEmoji').textContent = th.emoji;
-      if (playing) { stopAudio(); playing = false; setTimeout(() => { playing = true; startAudio(); }, 1800); }
+    function prevTrack() {
+      if (playlist.length === 0) return;
+      loadTrack((trackIdx - 1 + playlist.length) % playlist.length);
+    }
+    function nextTrack() {
+      if (playlist.length === 0) return;
+      loadTrack((trackIdx + 1) % playlist.length);
     }
 
-    function setVol(v) {
-      if (master) master.gain.value = v / 100 * 0.6;
+    audio.addEventListener('ended', () => nextTrack());
+
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      document.getElementById('progressBar').value   = (audio.currentTime / audio.duration) * 100;
+      document.getElementById('timeCur').textContent = fmt(audio.currentTime);
+      document.getElementById('timeTot').textContent = fmt(audio.duration);
+    });
+
+    function seek(v)   { if (audio.duration) audio.currentTime = (v / 100) * audio.duration; }
+    function setVol(v) { audio.volume = v / 100; }
+    function fmt(s)    { return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
+
+    function renderPlaylist() {
+      const pl = document.getElementById('playlist');
+      if (playlist.length <= 1) { pl.innerHTML = ''; return; }
+      pl.innerHTML = playlist.map((t, i) => `
+        <div class="pl-item ${i === trackIdx ? 'pl-active' : ''}" onclick="loadTrack(${i}); if(!playing){ togglePlay(); }">
+          <span class="pl-num">${i + 1}</span>
+          <span class="pl-name">${t.name}</span>
+          ${i === trackIdx ? '<span class="pl-now">▶</span>' : ''}
+        </div>
+      `).join('');
     }
     // ── End Audio Engine ──────────────────────────────────
+
 
     render();
   </script>
