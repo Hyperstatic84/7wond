@@ -281,36 +281,6 @@
       line-height: 1.4;
     }
 
-    /* Draft mode: two options */
-    .draft-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .draft-option {
-      background: #111318;
-      border: 1px solid #2a2d3e;
-      border-radius: 10px;
-      padding: 0.5rem;
-      text-align: center;
-    }
-
-    .draft-option .emoji  { font-size: 1.3rem; }
-    .draft-option .name   { font-size: 0.72rem; font-weight: 700; color: #D4AF37; margin: 0.2rem 0 0.1rem; }
-    .draft-option .power  { font-size: 0.65rem; color: #94a3b8; line-height: 1.3; }
-
-    .or-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: #475569;
-      letter-spacing: 0.1em;
-    }
-
     /* Error */
     .error {
       background: #1f0b0b;
@@ -334,7 +304,12 @@
 
   <!-- Players -->
   <div class="card">
-    <h2>👥 Joueurs</h2>
+    <h2>
+      👥 Joueurs
+      <button onclick="fillAntiquNames()" style="margin-left:auto;font-size:0.72rem;font-weight:600;letter-spacing:0.05em;text-transform:none;background:#111318;border:1px solid #2a2d3e;border-radius:8px;color:#94a3b8;padding:0.25rem 0.6rem;cursor:pointer;transition:border-color 0.2s,color 0.2s;" onmouseover="this.style.borderColor='#D4AF37';this.style.color='#D4AF37'" onmouseout="this.style.borderColor='#2a2d3e';this.style.color='#94a3b8'">
+        ✨ Noms antiques
+      </button>
+    </h2>
     <div id="playerList"></div>
     <button class="btn-add" id="addBtn" onclick="addPlayer()">+ Ajouter un joueur</button>
   </div>
@@ -354,16 +329,6 @@
       </label>
     </div>
 
-    <div class="option-row">
-      <div>
-        <div class="option-label">Mode "Choix Tactique"</div>
-        <div class="option-sub">Chaque joueur reçoit 2 merveilles et en choisit une</div>
-      </div>
-      <label class="toggle">
-        <input type="checkbox" id="optDraft" onchange="onOptionChange()" />
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
   </div>
 
   <div id="errorBox" class="error hidden"></div>
@@ -395,6 +360,13 @@
       { name: 'Ur',   emoji: '🌀', power: 'Obtenez le jeton Progrès Urbanisme (si dispo) ou des jetons de commerce exclusifs.' },
     ];
 
+    const ANTIQUE_NAMES = [
+      'Jules César', 'Cléopâtre', 'Périclès', 'Nabuchodonosor', 'Alexandre',
+      'Artémise', 'Hammurabi', 'Sémiramis', 'Khéops', 'Phidias',
+      'Hérodote', 'Ptolémée', 'Néron', 'Ramsès II', 'Xerxès',
+      'Hannibal', 'Scipion', 'Darius', 'Cyrus', 'Nefertiti'
+    ];
+
     let players = ['Joueur 1', 'Joueur 2', 'Joueur 3'];
 
     function pool() {
@@ -402,9 +374,13 @@
     }
 
     function maxAllowed() {
-      const p = pool();
-      const draft = document.getElementById('optDraft').checked;
-      return draft ? Math.floor(p.length / 2) : p.length;
+      return pool().length;
+    }
+
+    function fillAntiquNames() {
+      const shuffled = [...ANTIQUE_NAMES].sort(() => Math.random() - 0.5);
+      players = players.map((_, i) => shuffled[i]);
+      render();
     }
 
     function render() {
@@ -445,8 +421,7 @@
     }
 
     function onOptionChange() {
-      const max = maxAllowed();
-      while (players.length > max) players.pop();
+      while (players.length > maxAllowed()) players.pop();
       render();
     }
 
@@ -471,12 +446,10 @@
 
     function distribute() {
       hideError();
-      const draft = document.getElementById('optDraft').checked;
       const p = pool();
-      const needed = draft ? players.length * 2 : players.length;
 
-      if (p.length < needed) {
-        showError(`Pas assez de merveilles disponibles (${p.length}) pour ${needed} chantiers. Activez l'extension Médailles ou réduisez le nombre de joueurs.`);
+      if (p.length < players.length) {
+        showError(`Pas assez de merveilles disponibles (${p.length}) pour ${players.length} joueurs. Activez l'extension Médailles ou réduisez le nombre de joueurs.`);
         return;
       }
 
@@ -486,41 +459,17 @@
 
       players.forEach((name, i) => {
         const playerName = name.trim() || `Joueur ${i + 1}`;
+        const w = drawn[i];
         const card = document.createElement('div');
         card.className = 'result-card';
         card.style.animationDelay = `${i * 80}ms`;
-
-        if (draft) {
-          const a = drawn[i * 2];
-          const b = drawn[i * 2 + 1];
-          card.innerHTML = `
-            <div style="flex:1;min-width:0">
-              <div class="result-player">${playerName}</div>
-              <div class="draft-options">
-                <div class="draft-option">
-                  <div class="emoji">${a.emoji}</div>
-                  <div class="name">${a.name}</div>
-                  <div class="power">${a.power}</div>
-                </div>
-                <div class="or-badge">ou</div>
-                <div class="draft-option">
-                  <div class="emoji">${b.emoji}</div>
-                  <div class="name">${b.name}</div>
-                  <div class="power">${b.power}</div>
-                </div>
-              </div>
-            </div>`;
-        } else {
-          const w = drawn[i];
-          card.innerHTML = `
-            <div class="wonder-emoji">${w.emoji}</div>
-            <div class="result-info">
-              <div class="result-player">${playerName}</div>
-              <div class="result-wonder">${w.name}</div>
-              <div class="result-power">${w.power}</div>
-            </div>`;
-        }
-
+        card.innerHTML = `
+          <div class="wonder-emoji">${w.emoji}</div>
+          <div class="result-info">
+            <div class="result-player">${playerName}</div>
+            <div class="result-wonder">${w.name}</div>
+            <div class="result-power">${w.power}</div>
+          </div>`;
         cards.appendChild(card);
       });
 
