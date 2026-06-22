@@ -1,563 +1,456 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7 Wonders Architects — Répartition des Merveilles</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            cinzel: ['Cinzel', 'serif'],
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            gold: '#D4AF37',
-            goldLight: '#F3E5AB',
-            dark: '#0f1117',
-            card: '#161824',
-            accent: '#8B6508'
-          }
-        }
-      }
-    }
-  </script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7 Wonders Architects – Répartition</title>
   <style>
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #0f1117; }
-    ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 3px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .text-glow { text-shadow: 0 0 12px rgba(212,175,55,0.45); }
-
-    @keyframes revealCard {
-      from { opacity: 0; transform: translateY(24px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #111318;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
     }
-    .card-reveal { animation: revealCard 0.55s cubic-bezier(0.22,1,0.36,1) both; }
 
-    @keyframes barBounce {
-      from { height: 3px; }
-      to   { height: 22px; }
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: #D4AF37;
+      text-align: center;
+      margin-bottom: 0.25rem;
     }
-    .eq-bar {
-      display: inline-block;
-      width: 3px;
-      background: #D4AF37;
-      margin: 0 1.5px;
-      border-radius: 2px;
-      height: 3px;
-    }
-    .playing .eq-bar { animation: barBounce 0.9s ease-in-out infinite alternate; }
-    .playing .eq-bar:nth-child(1) { animation-delay: 0.0s; }
-    .playing .eq-bar:nth-child(2) { animation-delay: 0.3s; }
-    .playing .eq-bar:nth-child(3) { animation-delay: 0.15s; }
-    .playing .eq-bar:nth-child(4) { animation-delay: 0.45s; }
-    .playing .eq-bar:nth-child(5) { animation-delay: 0.25s; }
 
-    .wonder-card:hover { transform: translateY(-2px); }
-    .wonder-card { transition: transform 0.2s ease; }
+    .subtitle {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #64748b;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: #1a1d2b;
+      border: 1px solid #2a2d3e;
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #D4AF37;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Player rows */
+    #playerList {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .player-num {
+      width: 28px;
+      height: 28px;
+      background: #111318;
+      border: 1px solid #D4AF37;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #D4AF37;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .player-row input {
+      flex: 1;
+      background: #111318;
+      border: 1px solid #2a2d3e;
+      border-radius: 10px;
+      padding: 0.5rem 0.75rem;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .player-row input:focus { border-color: #D4AF37; }
+
+    .btn-icon {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #475569;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .btn-icon:hover:not(:disabled) { color: #ef4444; background: #ef444415; }
+    .btn-icon:disabled { opacity: 0.2; cursor: default; }
+
+    .btn-add {
+      width: 100%;
+      padding: 0.55rem;
+      background: transparent;
+      border: 1px dashed #2a2d3e;
+      border-radius: 10px;
+      color: #64748b;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-add:hover:not(:disabled) { border-color: #D4AF37; color: #D4AF37; }
+    .btn-add:disabled { opacity: 0.3; cursor: default; }
+
+    /* Options */
+    .option-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background: #111318;
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+    }
+
+    .option-label { font-size: 0.82rem; }
+    .option-sub   { font-size: 0.7rem; color: #64748b; margin-top: 0.1rem; }
+
+    /* Toggle switch */
+    .toggle { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #2a2d3e;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; top: 3px;
+      background: #94a3b8;
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: #8B6508; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: #D4AF37; }
+
+    /* Main CTA */
+    .btn-main {
+      width: 100%;
+      max-width: 520px;
+      padding: 1rem;
+      background: linear-gradient(135deg, #8B6508, #D4AF37);
+      border: none;
+      border-radius: 14px;
+      color: #111318;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-bottom: 2rem;
+    }
+
+    .btn-main:hover  { opacity: 0.92; }
+    .btn-main:active { transform: scale(0.98); }
+
+    /* Results */
+    #results { width: 100%; max-width: 520px; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .results-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #D4AF37;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .btn-secondary {
+      background: #1a1d2b;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover { border-color: #D4AF37; color: #D4AF37; }
+
+    #resultCards {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .result-card {
+      background: #1a1d2b;
+      border: 1px solid #2a2d3e;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .wonder-emoji {
+      font-size: 2rem;
+      width: 52px;
+      height: 52px;
+      background: #111318;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #2a2d3e;
+    }
+
+    .result-info { flex: 1; min-width: 0; }
+
+    .result-player {
+      font-size: 0.72rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.2rem;
+    }
+
+    .result-wonder {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #D4AF37;
+      margin-bottom: 0.3rem;
+    }
+
+    .result-power {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    /* Draft mode: two options */
+    .draft-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .draft-option {
+      background: #111318;
+      border: 1px solid #2a2d3e;
+      border-radius: 10px;
+      padding: 0.5rem;
+      text-align: center;
+    }
+
+    .draft-option .emoji  { font-size: 1.3rem; }
+    .draft-option .name   { font-size: 0.72rem; font-weight: 700; color: #D4AF37; margin: 0.2rem 0 0.1rem; }
+    .draft-option .power  { font-size: 0.65rem; color: #94a3b8; line-height: 1.3; }
+
+    .or-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 0.1em;
+    }
+
+    /* Error */
+    .error {
+      background: #1f0b0b;
+      border: 1px solid #ef444440;
+      color: #fca5a5;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
-<body class="bg-dark text-slate-100 font-sans min-h-screen flex flex-col">
+<body>
 
-  <!-- ===== HEADER ===== -->
-  <header class="sticky top-0 z-50 border-b border-gold/20 bg-card/80 backdrop-blur-md">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <svg class="w-8 h-8 text-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 22h16M4 2h16M7 6v12M12 6v12M17 6v12M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div>
-          <h1 class="font-cinzel font-black text-base md:text-lg tracking-widest text-gold text-glow leading-none">7 WONDERS</h1>
-          <p class="font-cinzel text-[9px] md:text-[10px] tracking-[0.2em] text-slate-400 mt-0.5">ARCHITECTS · RÉPARTITION</p>
-        </div>
-      </div>
-      <button onclick="showHelpModal()" class="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-gold border border-white/10 hover:border-gold/40 px-3 py-1.5 rounded-lg transition-all">
-        <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
-        <span class="hidden sm:inline">Aide</span>
-      </button>
-    </div>
-  </header>
+  <h1>7 WONDERS ARCHITECTS</h1>
+  <p class="subtitle">Répartition des Merveilles</p>
 
-  <!-- ===== MAIN ===== -->
-  <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-    <!-- LEFT: Config panel -->
-    <section class="lg:col-span-5 flex flex-col gap-5">
-
-      <!-- Audio player -->
-      <div class="bg-card border border-gold/20 rounded-2xl p-5 shadow-xl">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 bg-gold rounded-full animate-pulse"></span>
-            <span class="font-cinzel text-[10px] font-bold tracking-widest text-gold uppercase">Ambiance Sonore</span>
-          </div>
-          <div id="eqBars" class="flex items-end h-6">
-            <span class="eq-bar"></span>
-            <span class="eq-bar"></span>
-            <span class="eq-bar"></span>
-            <span class="eq-bar"></span>
-            <span class="eq-bar"></span>
-          </div>
-        </div>
-
-        <div class="bg-dark/70 rounded-xl p-3 border border-white/5 flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 rounded-full bg-card border-2 border-gold/40 flex items-center justify-center text-xl shrink-0">
-            <span id="trackEmoji">🏺</span>
-          </div>
-          <div class="min-w-0">
-            <p id="trackTitle" class="font-cinzel text-xs font-bold text-white truncate">Le Souffle d'Alexandrie</p>
-            <p id="trackSub" class="text-[10px] text-slate-400 truncate">Nappe douce &amp; Vent</p>
-          </div>
-        </div>
-
-        <div class="flex gap-2 mb-3">
-          <select id="trackSelect" onchange="selectTrack(this.value)"
-            class="flex-grow bg-dark border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-gold/40 cursor-pointer">
-            <option value="alexandrie">🌅 Alexandrie — Nappe & Vent</option>
-            <option value="ephese">🏛️ Éphèse — Drone Profond & Lyre</option>
-            <option value="gizeh">📐 Gizeh — Accords Épiques & Harpe</option>
-          </select>
-          <button id="playBtn" onclick="togglePlay()"
-            class="bg-gradient-to-r from-accent to-gold text-dark font-black p-3 rounded-full hover:scale-105 active:scale-95 transition-all shrink-0 shadow-md">
-            <i data-lucide="play" class="w-4 h-4" id="playIcon"></i>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-2 bg-dark/50 px-3 py-1.5 rounded-xl border border-white/5">
-          <i data-lucide="volume-1" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-          <input type="range" id="volSlider" min="0" max="100" value="40" oninput="setVolume(this.value)"
-            class="w-full accent-gold bg-slate-700 h-1 rounded-lg cursor-pointer">
-          <i data-lucide="volume-2" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-        </div>
-
-        <p class="text-[9px] text-slate-500 text-center mt-2.5">Synthèse locale — fonctionne hors-ligne</p>
-      </div>
-
-      <!-- Config panel -->
-      <div class="bg-card/60 border border-gold/15 rounded-2xl p-5 shadow-xl flex flex-col flex-grow">
-
-        <div class="flex items-center gap-2 mb-4">
-          <i data-lucide="settings" class="w-4.5 h-4.5 text-gold"></i>
-          <h2 class="font-cinzel text-sm font-bold tracking-wider text-gold">Configuration</h2>
-        </div>
-
-        <!-- Toggles -->
-        <div class="space-y-2.5 mb-5">
-          <label class="flex items-center justify-between p-3 bg-dark/50 rounded-xl border border-white/5 cursor-pointer">
-            <div class="flex items-center gap-3">
-              <i data-lucide="award" class="w-4 h-4 text-amber-400 shrink-0"></i>
-              <div>
-                <span class="block text-xs font-medium">Extension "Médailles"</span>
-                <span class="block text-[10px] text-slate-400">Ajoute Rome &amp; Ur (9 merveilles)</span>
-              </div>
-            </div>
-            <div class="relative inline-flex items-center shrink-0 ml-3">
-              <input type="checkbox" id="extensionMedals" onchange="onSettingsChange()" class="sr-only peer">
-              <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-accent after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gold after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-            </div>
-          </label>
-
-          <label class="flex items-center justify-between p-3 bg-dark/50 rounded-xl border border-white/5 cursor-pointer">
-            <div class="flex items-center gap-3">
-              <i data-lucide="shuffle" class="w-4 h-4 text-cyan-400 shrink-0"></i>
-              <div>
-                <span class="block text-xs font-medium">Mode "Choix Tactique"</span>
-                <span class="block text-[10px] text-slate-400">2 merveilles au choix par joueur</span>
-              </div>
-            </div>
-            <div class="relative inline-flex items-center shrink-0 ml-3">
-              <input type="checkbox" id="draftMode" onchange="onSettingsChange()" class="sr-only peer">
-              <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-cyan-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gold after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-            </div>
-          </label>
-        </div>
-
-        <!-- Players -->
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="users" class="w-4 h-4 text-gold"></i>
-            <h3 class="font-cinzel text-xs font-bold tracking-wider text-gold">
-              Joueurs <span id="playerCount" class="text-slate-300">(3)</span>
-            </h3>
-          </div>
-          <button onclick="fillMythicalNames()"
-            class="flex items-center gap-1 text-[11px] text-gold hover:underline bg-gold/10 hover:bg-gold/15 px-2.5 py-1 rounded-lg transition-all">
-            <i data-lucide="sparkles" class="w-3 h-3"></i>
-            <span>Noms mythiques</span>
-          </button>
-        </div>
-
-        <div id="playersContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1 mb-2.5"></div>
-
-        <button id="addPlayerBtn" onclick="addPlayer()"
-          class="w-full py-2 border border-dashed border-gold/25 hover:border-gold text-slate-400 hover:text-gold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
-          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-          <span>Ajouter un joueur</span>
-        </button>
-
-        <!-- Distribute button -->
-        <div class="mt-5 pt-4 border-t border-gold/10">
-          <button onclick="distributeWonders()"
-            class="w-full bg-gradient-to-r from-accent to-gold text-dark font-cinzel font-black tracking-widest py-3.5 rounded-xl shadow-lg hover:shadow-gold/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 text-sm">
-            <i data-lucide="dices" class="w-4.5 h-4.5"></i>
-            LANCER LA RÉPARTITION
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- RIGHT: Results -->
-    <section class="lg:col-span-7 flex flex-col">
-
-      <!-- Empty state -->
-      <div id="emptyState" class="flex-grow flex flex-col items-center justify-center text-center p-10 border border-dashed border-gold/15 rounded-2xl bg-card/20 min-h-[420px]">
-        <div class="w-16 h-16 bg-gold/5 border border-gold/10 rounded-full flex items-center justify-center mb-4 animate-pulse">
-          <i data-lucide="compass" class="w-8 h-8 text-gold"></i>
-        </div>
-        <h3 class="font-cinzel text-base tracking-widest text-gold mb-2">Prêt pour le tirage</h3>
-        <p class="text-xs text-slate-400 max-w-xs leading-relaxed">
-          Configurez vos joueurs, choisissez vos options, puis lancez la répartition pour attribuer les merveilles aléatoirement.
-        </p>
-      </div>
-
-      <!-- Results -->
-      <div id="resultsWrapper" class="hidden flex-col h-full">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <i data-lucide="sparkles" class="w-5 h-5 text-gold"></i>
-            <h2 class="font-cinzel text-sm font-bold tracking-wider text-gold">Merveilles Attribuées</h2>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="distributeWonders()"
-              class="text-xs flex items-center gap-1.5 bg-card border border-gold/20 hover:border-gold text-slate-200 px-3 py-1.5 rounded-lg transition-all">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              <span>Relancer</span>
-            </button>
-            <button onclick="copyToClipboard()"
-              class="text-xs flex items-center gap-1.5 bg-card border border-gold/20 hover:border-gold text-slate-200 px-3 py-1.5 rounded-lg transition-all">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span>Copier</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto max-h-[520px] pr-1"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ===== FOOTER ===== -->
-  <footer class="border-t border-gold/10 bg-card/40 py-3 text-center text-[10px] text-slate-500">
-    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-1">
-      <p>© 2026 — Compagnon 7 Wonders Architects</p>
-      <button onclick="showHelpModal()" class="hover:text-gold transition-colors">Aide de jeu · Pouvoirs des Merveilles</button>
-    </div>
-  </footer>
-
-  <!-- ===== TOAST ===== -->
-  <div id="toast" class="hidden fixed bottom-5 right-5 bg-gold text-dark font-semibold text-sm px-4 py-2 rounded-xl shadow-xl flex items-center gap-2 z-50">
-    <i data-lucide="check" class="w-4 h-4"></i>
-    <span id="toastMsg">Répartition copiée !</span>
+  <!-- Players -->
+  <div class="card">
+    <h2>👥 Joueurs</h2>
+    <div id="playerList"></div>
+    <button class="btn-add" id="addBtn" onclick="addPlayer()">+ Ajouter un joueur</button>
   </div>
 
-  <!-- ===== HELP MODAL ===== -->
-  <div id="helpModal" class="hidden fixed inset-0 bg-dark/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-card border border-gold/30 rounded-2xl max-w-lg w-full p-6 relative shadow-2xl">
-      <button onclick="hideHelpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-      <h3 class="font-cinzel text-base font-bold text-gold mb-4 tracking-wider text-glow">Pouvoirs des Merveilles</h3>
-      <div class="space-y-3 text-xs text-slate-300 max-h-[400px] overflow-y-auto pr-2">
-        <p class="text-slate-400">Chaque merveille a un pouvoir unique qui s'active à son <strong class="text-white">étape centrale</strong>.</p>
-        <div class="border-t border-white/10 pt-3 space-y-2">
-          <div class="flex gap-2">
-            <span class="shrink-0">📐</span>
-            <div><strong class="text-amber-300">Gizeh</strong> — Aucun pouvoir, mais rapporte <strong>8 points de victoire</strong> à l'étape finale. Idéal pour gagner par les points.</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">🏛️</span>
-            <div><strong class="text-cyan-300">Alexandrie</strong> — Piochez la première carte d'une <strong>pioche de votre choix</strong> (gauche, droite ou centre).</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">🌿</span>
-            <div><strong class="text-emerald-300">Éphèse</strong> — Prenez <strong>gratuitement</strong> la première carte de la pioche centrale.</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">⚡</span>
-            <div><strong class="text-purple-300">Olympie</strong> — Prenez gratuitement <strong>un jeton Progrès</strong> parmi les trois disponibles.</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">🌸</span>
-            <div><strong class="text-rose-300">Babylone</strong> — Choisissez <strong>un symbole scientifique</strong> de votre choix lors du décompte final.</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">⚔️</span>
-            <div><strong class="text-orange-300">Rhodes</strong> — Ajoutez <strong>1 Bouclier permanent</strong> à votre force militaire.</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">🦁</span>
-            <div><strong class="text-indigo-300">Halicarnasse</strong> — Fouillez la <strong>défausse</strong>, choisissez une carte et jouez-la gratuitement.</div>
-          </div>
-          <div class="border-t border-white/10 pt-2 mt-1">
-            <p class="text-[10px] text-gold/70 font-cinzel tracking-wider mb-1.5">EXTENSION MÉDAILLES</p>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">🏟️</span>
-            <div><strong class="text-amber-200">Rome</strong> — Piochez 3 jetons Progrès cachés, <strong>gardez-en un</strong>. Vos cartes militaires spéciales rapportent des bonus.</div>
-          </div>
-          <div class="flex gap-2">
-            <span class="shrink-0">🌀</span>
-            <div><strong class="text-blue-200">Ur</strong> — Obtenez le <strong>jeton Progrès d'Urbanisme</strong> (si disponible) ou des jetons de commerce exclusifs.</div>
-          </div>
-        </div>
+  <!-- Options -->
+  <div class="card">
+    <h2>⚙️ Options</h2>
+
+    <div class="option-row">
+      <div>
+        <div class="option-label">Extension "Médailles"</div>
+        <div class="option-sub">Ajoute Rome &amp; Ur → 9 merveilles disponibles</div>
       </div>
-      <button onclick="hideHelpModal()" class="w-full mt-5 bg-gold/15 text-gold font-bold py-2 rounded-xl border border-gold/25 hover:bg-gold/25 transition-all text-sm">
-        Fermer
-      </button>
+      <label class="toggle">
+        <input type="checkbox" id="optMedals" onchange="onOptionChange()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="option-row">
+      <div>
+        <div class="option-label">Mode "Choix Tactique"</div>
+        <div class="option-sub">Chaque joueur reçoit 2 merveilles et en choisit une</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="optDraft" onchange="onOptionChange()" />
+        <span class="toggle-slider"></span>
+      </label>
     </div>
   </div>
 
-  <!-- ===== JAVASCRIPT ===== -->
+  <div id="errorBox" class="error hidden"></div>
+
+  <button class="btn-main" onclick="distribute()">🎲 Lancer la Répartition</button>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+    <div class="results-header">
+      <span class="results-title">✨ Merveilles Attribuées</span>
+      <button class="btn-secondary" onclick="distribute()">↺ Relancer</button>
+    </div>
+    <div id="resultCards"></div>
+  </div>
+
   <script>
-    // ───────────────────────────────────────────────
-    // DATA
-    // ───────────────────────────────────────────────
-    const WONDERS = {
-      base: [
-        { id: 'gizeh',         name: 'Gizeh',         emoji: '📐', power: '8 points de victoire à l\'étape finale. Aucun pouvoir spécial — la puissance brute des pyramides.',    color: 'from-amber-600/25 to-amber-900/35 border-amber-500/30 text-amber-300' },
-        { id: 'alexandrie',    name: 'Alexandrie',    emoji: '🏛️', power: 'Piochez la première carte d\'une pioche de votre choix (gauche, droite ou centre). Adaptabilité maximale.', color: 'from-cyan-600/25 to-cyan-900/35 border-cyan-500/30 text-cyan-300' },
-        { id: 'ephese',        name: 'Éphèse',        emoji: '🌿', power: 'Prenez gratuitement la première carte de la pioche centrale. Parfait pour accélérer vos chantiers.', color: 'from-emerald-600/25 to-emerald-900/35 border-emerald-500/30 text-emerald-300' },
-        { id: 'olympie',       name: 'Olympie',       emoji: '⚡', power: 'Prenez gratuitement l\'un des trois jetons Progrès disponibles. Propulsez votre arbre technologique.', color: 'from-purple-600/25 to-purple-900/35 border-purple-500/30 text-purple-300' },
-        { id: 'babylone',      name: 'Babylone',      emoji: '🌸', power: 'Choisissez un symbole scientifique (Roue, Compas ou Tablette) lors du décompte final des scores.', color: 'from-rose-600/25 to-rose-900/35 border-rose-500/30 text-rose-300' },
-        { id: 'rhodes',        name: 'Rhodes',        emoji: '⚔️', power: 'Ajoutez définitivement 1 Bouclier à votre force de combat. Une protection militaire permanente.',  color: 'from-orange-600/25 to-orange-900/35 border-orange-500/30 text-orange-300' },
-        { id: 'halicarnasse',  name: 'Halicarnasse',  emoji: '🦁', power: 'Fouillez la défausse, choisissez-y une carte et jouez-la immédiatement et gratuitement.',           color: 'from-indigo-600/25 to-indigo-900/35 border-indigo-500/30 text-indigo-300' }
-      ],
-      medals: [
-        { id: 'rome', name: 'Rome',      emoji: '🏟️', power: 'Piochez 3 jetons Progrès cachés, gardez-en un. Vos cartes militaires spéciales vous rapportent des bonus.', color: 'from-amber-800/35 to-red-950/40 border-amber-600/30 text-amber-200' },
-        { id: 'ur',   name: 'Ur',        emoji: '🌀', power: 'Obtenez le jeton Progrès d\'Urbanisme (si disponible) ou des jetons de commerce exclusifs pour doubler vos ressources.', color: 'from-blue-800/35 to-indigo-950/40 border-blue-600/30 text-blue-200' }
-      ]
-    };
-
-    const MYTHICAL_NAMES = [
-      'Jules César','Cléopâtre','Périclès','Nabuchodonosor','Alexandre','Artémise',
-      'Hammurabi','Sémiramis','Khéops','Phidias','Hérodote','Ptolémée','Néron','Ramsès II','Xerxès'
+    const WONDERS = [
+      { name: 'Gizeh',        emoji: '🔺', power: 'Pas de pouvoir spécial, mais rapporte 8 points de victoire à son étape finale.' },
+      { name: 'Alexandrie',   emoji: '💡', power: 'Piochez la 1ère carte d\'une pioche de votre choix (gauche, droite ou centre).' },
+      { name: 'Éphèse',       emoji: '🏛️', power: 'Prenez gratuitement la 1ère carte de la pioche centrale.' },
+      { name: 'Olympie',      emoji: '⚡', power: 'Prenez gratuitement un jeton Progrès parmi les trois disponibles.' },
+      { name: 'Babylone',     emoji: '🌿', power: 'Choisissez un symbole scientifique de votre choix lors du décompte final.' },
+      { name: 'Rhodes',       emoji: '⚔️', power: 'Ajoutez définitivement 1 Bouclier à votre force militaire.' },
+      { name: 'Halicarnasse', emoji: '🦁', power: 'Fouillez la défausse et jouez une carte gratuitement.' },
     ];
 
-    let players = ['Bâtisseur 1', 'Bâtisseur 2', 'Bâtisseur 3'];
-    let lastDistribution = [];
+    const MEDALS = [
+      { name: 'Rome', emoji: '🏟️', power: 'Piochez 3 jetons Progrès cachés et gardez-en un. Bonus pour les cartes militaires spéciales.' },
+      { name: 'Ur',   emoji: '🌀', power: 'Obtenez le jeton Progrès Urbanisme (si dispo) ou des jetons de commerce exclusifs.' },
+    ];
 
-    // ───────────────────────────────────────────────
-    // AUDIO SYNTH
-    // ───────────────────────────────────────────────
-    let audioCtx = null;
-    let masterGain = null;
-    let synthPlaying = false;
-    let currentTrack = 'alexandrie';
-    let activeNodes = [];
-    let chimeTimer = null;
+    let players = ['Joueur 1', 'Joueur 2', 'Joueur 3'];
 
-    const TRACKS = {
-      alexandrie: {
-        title: 'Le Souffle d\'Alexandrie', sub: 'Nappe douce & Vent',   emoji: '🏺',
-        drone: 110, scale: [220, 261.63, 293.66, 329.63, 392, 440, 523.25]
-      },
-      ephese: {
-        title: 'Temple d\'Éphèse',         sub: 'Drone Profond & Lyre', emoji: '🏛️',
-        drone: 73.42, scale: [293.66, 311.13, 369.99, 392, 440, 466.16, 554.37]
-      },
-      gizeh: {
-        title: 'Chantiers de Gizeh',       sub: 'Accords Épiques & Harpe', emoji: '📐',
-        drone: 98,   scale: [196, 220, 246.94, 293.66, 329.63, 392, 440]
-      }
-    };
-
-    function initCtx() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = parseFloat(document.getElementById('volSlider').value) / 100 * 0.5;
-        masterGain.connect(audioCtx.destination);
-      }
+    function pool() {
+      return document.getElementById('optMedals').checked ? [...WONDERS, ...MEDALS] : [...WONDERS];
     }
 
-    function stopSynth() {
-      clearInterval(chimeTimer);
-      chimeTimer = null;
-      activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
-      activeNodes = [];
+    function maxAllowed() {
+      const p = pool();
+      const draft = document.getElementById('optDraft').checked;
+      return draft ? Math.floor(p.length / 2) : p.length;
     }
 
-    function startSynth() {
-      const t = TRACKS[currentTrack];
-      const now = audioCtx.currentTime;
-
-      const reverb = audioCtx.createDelay(0.4);
-      reverb.delayTime.value = 0.35;
-      const fbGain = audioCtx.createGain();
-      fbGain.gain.value = 0.35;
-      reverb.connect(fbGain);
-      fbGain.connect(reverb);
-      reverb.connect(masterGain);
-
-      function mkOsc(freq, type, vol, detune = 0) {
-        const osc = audioCtx.createOscillator();
-        const g   = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        osc.detune.value = detune;
-        g.gain.value = vol;
-        osc.connect(g);
-        g.connect(masterGain);
-        g.connect(reverb);
-        osc.start();
-        activeNodes.push(osc);
-        return { osc, g };
-      }
-
-      mkOsc(t.drone,      'sine',     0.18);
-      mkOsc(t.drone * 2,  'sine',     0.08, 4);
-      mkOsc(t.drone * 3,  'triangle', 0.04);
-
-      const lfo = audioCtx.createOscillator();
-      const lfoG = audioCtx.createGain();
-      lfo.frequency.value = 0.15;
-      lfoG.gain.value = 3;
-      lfo.connect(lfoG);
-      lfo.start();
-      activeNodes.push(lfo);
-
-      function playChime() {
-        if (!synthPlaying) return;
-        const freq = t.scale[Math.floor(Math.random() * t.scale.length)];
-        const g = audioCtx.createGain();
-        const osc = audioCtx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.value = freq * (Math.random() > 0.5 ? 2 : 1);
-        g.gain.setValueAtTime(0, audioCtx.currentTime);
-        g.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.05);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
-        osc.connect(g);
-        g.connect(masterGain);
-        g.connect(reverb);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 2.6);
-      }
-
-      chimeTimer = setInterval(playChime, 1800 + Math.random() * 1200);
-      playChime();
-    }
-
-    function togglePlay() {
-      initCtx();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-
-      synthPlaying = !synthPlaying;
-      const icon    = document.getElementById('playIcon');
-      const eqBars  = document.getElementById('eqBars');
-
-      if (synthPlaying) {
-        startSynth();
-        icon.setAttribute('data-lucide', 'pause');
-        eqBars.classList.add('playing');
-      } else {
-        stopSynth();
-        icon.setAttribute('data-lucide', 'play');
-        eqBars.classList.remove('playing');
-      }
-      lucide.createIcons();
-    }
-
-    function selectTrack(val) {
-      currentTrack = val;
-      const t = TRACKS[val];
-      document.getElementById('trackTitle').textContent = t.title;
-      document.getElementById('trackSub').textContent   = t.sub;
-      document.getElementById('trackEmoji').textContent = t.emoji;
-      if (synthPlaying) { stopSynth(); startSynth(); }
-    }
-
-    function setVolume(val) {
-      if (masterGain) masterGain.gain.value = val / 100 * 0.5;
-    }
-
-    // ───────────────────────────────────────────────
-    // PLAYER MANAGEMENT
-    // ───────────────────────────────────────────────
-    function maxPlayers() {
-      const medals = document.getElementById('extensionMedals').checked;
-      const draft  = document.getElementById('draftMode').checked;
-      const pool   = WONDERS.base.length + (medals ? WONDERS.medals.length : 0);
-      return draft ? Math.floor(pool / 2) : pool;
-    }
-
-    function renderPlayers() {
-      const c = document.getElementById('playersContainer');
-      c.innerHTML = '';
+    function render() {
+      const list = document.getElementById('playerList');
+      list.innerHTML = '';
       players.forEach((name, i) => {
         const row = document.createElement('div');
-        row.className = 'flex items-center gap-2';
+        row.className = 'player-row';
         row.innerHTML = `
-          <span class="font-cinzel font-bold text-xs text-gold bg-dark/80 border border-gold/20 px-2 py-1.5 rounded-lg min-w-[28px] text-center">${i + 1}</span>
-          <input type="text" value="${name}" oninput="players[${i}]=this.value" placeholder="Nom du joueur"
-            class="flex-grow bg-dark/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-gold/50 transition-all">
-          <button onclick="removePlayer(${i})" ${players.length <= 2 ? 'disabled' : ''}
-            class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all ${players.length <= 2 ? 'opacity-25 pointer-events-none' : ''}">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>`;
-        c.appendChild(row);
+          <div class="player-num">${i + 1}</div>
+          <input type="text" value="${name}" placeholder="Nom du joueur"
+            oninput="players[${i}] = this.value" />
+          <button class="btn-icon" onclick="removePlayer(${i})"
+            ${players.length <= 2 ? 'disabled' : ''} title="Supprimer">✕</button>`;
+        list.appendChild(row);
       });
-      document.getElementById('playerCount').textContent = `(${players.length})`;
-      const addBtn = document.getElementById('addPlayerBtn');
-      const full = players.length >= maxPlayers();
-      addBtn.disabled = full;
-      addBtn.classList.toggle('opacity-30', full);
-      addBtn.classList.toggle('cursor-not-allowed', full);
-      lucide.createIcons();
+
+      const max = maxAllowed();
+      const addBtn = document.getElementById('addBtn');
+      addBtn.disabled = players.length >= max;
+      addBtn.textContent = players.length >= max
+        ? `Maximum atteint (${max} joueurs)`
+        : '+ Ajouter un joueur';
     }
 
     function addPlayer() {
-      if (players.length < maxPlayers()) {
-        players.push(`Bâtisseur ${players.length + 1}`);
-        renderPlayers();
-        const c = document.getElementById('playersContainer');
-        c.scrollTop = c.scrollHeight;
+      if (players.length < maxAllowed()) {
+        players.push(`Joueur ${players.length + 1}`);
+        render();
       }
     }
 
     function removePlayer(i) {
       if (players.length > 2) {
         players.splice(i, 1);
-        renderPlayers();
+        render();
       }
     }
 
-    function onSettingsChange() {
-      const max = maxPlayers();
+    function onOptionChange() {
+      const max = maxAllowed();
       while (players.length > max) players.pop();
-      renderPlayers();
+      render();
     }
 
-    function fillMythicalNames() {
-      const shuffled = [...MYTHICAL_NAMES].sort(() => Math.random() - 0.5);
-      players = players.map((_, i) => shuffled[i] || `Bâtisseur ${i + 1}`);
-      renderPlayers();
-    }
-
-    // ───────────────────────────────────────────────
-    // DISTRIBUTION
-    // ───────────────────────────────────────────────
-    function fisherYates(arr) {
+    function shuffle(arr) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -566,152 +459,76 @@
       return a;
     }
 
-    function distributeWonders() {
-      const medals = document.getElementById('extensionMedals').checked;
-      const draft  = document.getElementById('draftMode').checked;
+    function showError(msg) {
+      const box = document.getElementById('errorBox');
+      box.textContent = msg;
+      box.classList.remove('hidden');
+    }
 
-      let pool = [...WONDERS.base, ...(medals ? WONDERS.medals : [])];
+    function hideError() {
+      document.getElementById('errorBox').classList.add('hidden');
+    }
+
+    function distribute() {
+      hideError();
+      const draft = document.getElementById('optDraft').checked;
+      const p = pool();
       const needed = draft ? players.length * 2 : players.length;
 
-      if (pool.length < needed) {
-        showToast(`Pas assez de merveilles (${pool.length}) pour ${needed} chantiers.`, true);
+      if (p.length < needed) {
+        showError(`Pas assez de merveilles disponibles (${p.length}) pour ${needed} chantiers. Activez l'extension Médailles ou réduisez le nombre de joueurs.`);
         return;
       }
 
-      const shuffled = fisherYates(pool);
-      const results = players.map((name, i) => {
-        const pname = name.trim() || `Bâtisseur ${i + 1}`;
-        if (draft) {
-          return { player: pname, draft: true,  a: shuffled[i * 2], b: shuffled[i * 2 + 1] };
-        } else {
-          return { player: pname, draft: false, wonder: shuffled[i] };
-        }
-      });
+      const drawn = shuffle(p);
+      const cards = document.getElementById('resultCards');
+      cards.innerHTML = '';
 
-      lastDistribution = results;
-      renderResults(results);
-
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#D4AF37','#F3E5AB','#8B6508','#fff'] });
-    }
-
-    function renderResults(results) {
-      document.getElementById('emptyState').classList.add('hidden');
-      const wrapper = document.getElementById('resultsWrapper');
-      wrapper.classList.remove('hidden');
-      wrapper.classList.add('flex');
-
-      const c = document.getElementById('resultsContainer');
-      c.innerHTML = '';
-
-      results.forEach((res, idx) => {
+      players.forEach((name, i) => {
+        const playerName = name.trim() || `Joueur ${i + 1}`;
         const card = document.createElement('div');
-        card.className = 'wonder-card bg-card border rounded-2xl p-4 shadow-lg opacity-0 card-reveal';
-        card.style.animationDelay = `${idx * 90}ms`;
+        card.className = 'result-card';
+        card.style.animationDelay = `${i * 80}ms`;
 
-        if (res.draft) {
-          card.classList.add('border-cyan-500/20');
+        if (draft) {
+          const a = drawn[i * 2];
+          const b = drawn[i * 2 + 1];
           card.innerHTML = `
-            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
-              <span class="font-cinzel text-[10px] font-bold text-cyan-400 tracking-wider uppercase">Choix Tactique</span>
-              <span class="text-[9px] text-slate-400">Joueur ${idx + 1}</span>
-            </div>
-            <div class="flex items-center gap-1.5 mb-3">
-              <i data-lucide="user" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
-              <span class="font-cinzel text-sm font-black text-white">${res.player}</span>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              ${wonderMini(res.a)}
-              ${wonderMini(res.b)}
-            </div>
-            <p class="text-center text-[9px] text-cyan-300/70 mt-2.5 italic">Choisissez l'une des deux merveilles</p>`;
-        } else {
-          const w = res.wonder;
-          card.classList.add('border-gold/20', 'bg-gradient-to-br', 'from-gold/5', 'to-card');
-          card.innerHTML = `
-            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
-              <span class="font-cinzel text-[10px] text-gold tracking-widest">Attribution</span>
-              <span class="text-[9px] text-slate-400">Joueur ${idx + 1}</span>
-            </div>
-            <div class="flex items-center gap-1.5 mb-3">
-              <i data-lucide="user" class="w-3.5 h-3.5 text-gold shrink-0"></i>
-              <span class="font-cinzel text-sm font-black text-white">${res.player}</span>
-            </div>
-            <div class="border rounded-xl p-3 bg-gradient-to-r ${w.color} flex gap-3">
-              <div class="w-9 h-9 bg-dark/60 border border-white/10 rounded-lg flex items-center justify-center text-lg shrink-0">${w.emoji}</div>
-              <div>
-                <span class="font-cinzel font-black text-xs text-white tracking-wider block">${w.name.toUpperCase()}</span>
-                <p class="text-[9px] text-slate-200 leading-relaxed mt-0.5">${w.power}</p>
+            <div style="flex:1;min-width:0">
+              <div class="result-player">${playerName}</div>
+              <div class="draft-options">
+                <div class="draft-option">
+                  <div class="emoji">${a.emoji}</div>
+                  <div class="name">${a.name}</div>
+                  <div class="power">${a.power}</div>
+                </div>
+                <div class="or-badge">ou</div>
+                <div class="draft-option">
+                  <div class="emoji">${b.emoji}</div>
+                  <div class="name">${b.name}</div>
+                  <div class="power">${b.power}</div>
+                </div>
               </div>
+            </div>`;
+        } else {
+          const w = drawn[i];
+          card.innerHTML = `
+            <div class="wonder-emoji">${w.emoji}</div>
+            <div class="result-info">
+              <div class="result-player">${playerName}</div>
+              <div class="result-wonder">${w.name}</div>
+              <div class="result-power">${w.power}</div>
             </div>`;
         }
 
-        c.appendChild(card);
+        cards.appendChild(card);
       });
 
-      lucide.createIcons();
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function wonderMini(w) {
-      return `
-        <div class="border rounded-xl p-2 bg-dark/60 flex flex-col gap-1 ${w.color}">
-          <div class="flex items-center gap-1">
-            <span class="text-sm">${w.emoji}</span>
-            <span class="font-cinzel font-bold text-[10px] truncate">${w.name}</span>
-          </div>
-          <p class="text-[8.5px] text-slate-300 leading-tight line-clamp-3">${w.power}</p>
-        </div>`;
-    }
-
-    // ───────────────────────────────────────────────
-    // COPY TO CLIPBOARD
-    // ───────────────────────────────────────────────
-    function copyToClipboard() {
-      if (!lastDistribution.length) return;
-      let txt = '🏆 RÉPARTITION 7 WONDERS ARCHITECTS 🏆\n\n';
-      lastDistribution.forEach(res => {
-        if (res.draft) {
-          txt += `👤 ${res.player}\n   A : ${res.a.emoji} ${res.a.name}\n   B : ${res.b.emoji} ${res.b.name}\n\n`;
-        } else {
-          txt += `👤 ${res.player} : ${res.wonder.emoji} ${res.wonder.name}\n`;
-        }
-      });
-      txt += '\n⚡ Que le meilleur bâtisseur l\'emporte !';
-      navigator.clipboard.writeText(txt).then(() => showToast('Répartition copiée !')).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = txt;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('Répartition copiée !');
-      });
-    }
-
-    // ───────────────────────────────────────────────
-    // UI HELPERS
-    // ───────────────────────────────────────────────
-    let toastTimer = null;
-    function showToast(msg, error = false) {
-      const toast = document.getElementById('toast');
-      document.getElementById('toastMsg').textContent = msg;
-      toast.className = `fixed bottom-5 right-5 font-semibold text-sm px-4 py-2 rounded-xl shadow-xl flex items-center gap-2 z-50 ${error ? 'bg-red-500 text-white' : 'bg-gold text-dark'}`;
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.add('hidden'), 2800);
-    }
-
-    function showHelpModal() { document.getElementById('helpModal').classList.remove('hidden'); }
-    function hideHelpModal() { document.getElementById('helpModal').classList.add('hidden'); }
-
-    // ───────────────────────────────────────────────
-    // INIT
-    // ───────────────────────────────────────────────
-    window.onload = () => {
-      renderPlayers();
-      lucide.createIcons();
-      document.getElementById('helpModal').addEventListener('click', e => {
-        if (e.target === document.getElementById('helpModal')) hideHelpModal();
-      });
-    };
+    render();
   </script>
 </body>
 </html>
